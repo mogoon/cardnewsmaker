@@ -246,7 +246,6 @@
     letter-spacing: 1px;
     opacity: 0.5;
     font-family: 'DM Serif Display', serif;
-    paint-order: stroke fill;
   }
 
   .card-page-num {
@@ -264,14 +263,12 @@
     margin-bottom: 12px;
     word-break: keep-all;
     white-space: pre-wrap;
-    paint-order: stroke fill;
   }
   .card-body-display {
     font-size: 13px; font-weight: 300;
     line-height: 1.7;
     text-align: center;
     word-break: keep-all;
-    paint-order: stroke fill;
     white-space: pre-wrap;
   }
   .card-divider {
@@ -1285,7 +1282,9 @@ function selectSlide(i) {
 
 function addSlide() {
   const base = getSlide(state.current);
-  state.slides.push({ title: '', body: '', bg: base.bg, tc: base.tc, bodyTc: base.bodyTc || base.tc, fontSize: base.fontSize, bodyFontSize: base.bodyFontSize || 13, align: base.align, valign: base.valign, padding: base.padding, divider: base.divider, showTitle: true, showBody: true, badge: base.badge, badgePos: base.badgePos || 'left', font: base.font || 'Noto Sans KR', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: 30, textStroke: base.textStroke || '#000000', textStrokeWidth: base.textStrokeWidth || 0, bodyStroke: base.bodyStroke || '#000000', bodyStrokeWidth: base.bodyStrokeWidth || 0 });
+  const newSlide = { ...DEFAULT_SLIDE, ...base, title: '', body: '', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, showTitle: true, showBody: true };
+  delete newSlide.tlStart; delete newSlide.tlDur; delete newSlide._imagePrompt;
+  state.slides.push(newSlide);
   selectSlide(state.slides.length - 1);
 }
 
@@ -1900,28 +1899,21 @@ ${imagePromptInstruction}
     const styleMap = { minimal: 'minimalist clean', photo: 'professional photograph', illustration: 'digital illustration', gradient: 'abstract gradient', watercolor: 'watercolor painting' };
 
     state.slides = parsed.slides.map((sl, i) => ({
+      ...DEFAULT_SLIDE,
       title: sl.title,
       body: sl.body.replace(/\\n/g, '\n'),
       bg: wantImages ? '#000000' : ['#FFFFFF','#F5F0E8','#E8F0F5','#E8F2EB','#F5E8E8'][i % 5],
       tc: wantImages ? '#FFFFFF' : '#1A1916',
       bodyTc: wantImages ? 'rgba(255,255,255,0.85)' : '#1A1916',
       fontSize: i === 0 ? 26 : 22,
-      bodyFontSize: 13,
-      align: 'center',
-      valign: 'center',
-      padding: 32,
-      divider: true,
-      showTitle: true,
-      showBody: true,
       badge: $('badgeInput').value || 'CARD',
       font: currentFont,
-      bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: wantImages ? 40 : 30,
-      textStroke: '', textStrokeWidth: 0,
-      bodyStroke: '', bodyStrokeWidth: 0,
+      bgOverlay: wantImages ? 40 : 30,
       _imagePrompt: sl.imagePrompt || '',
     }));
 
     selectSlide(0);
+    if (!wantImages) state.slides.forEach(s => delete s._imagePrompt);
     saveState();
 
     // hashtags
@@ -1967,6 +1959,8 @@ ${imagePromptInstruction}
         if (i === state.current) renderCard();
         renderSlideStrip();
       }
+      // _imagePrompt 임시 속성 정리
+      state.slides.forEach(s => delete s._imagePrompt);
       saveState();
       showToast(`${successCount}장 배경 이미지 생성 완료!`);
       selectSlide(0);
@@ -2375,9 +2369,38 @@ setSlide = function(i, key, val) { _origSetSlide(i, key, val); saveState(); };
 
 // patch slide mutation functions
 const _origAddSlide = addSlide;
-addSlide = function() { _origAddSlide(); saveState(); if (state.bgVideo) { distributeSlides(); renderTimeline(); } };
+addSlide = function() {
+  _origAddSlide(); saveState();
+  if (state.bgVideo && $('cardBgVideo').duration) {
+    // 마지막 슬라이드에서 시간을 빌려서 새 슬라이드에 할당
+    const newSl = state.slides[state.slides.length - 1];
+    const prevSl = state.slides.length > 1 ? state.slides[state.slides.length - 2] : null;
+    if (prevSl && prevSl.tlDur > 1) {
+      const share = prevSl.tlDur / 2;
+      newSl.tlStart = (prevSl.tlStart || 0) + share;
+      newSl.tlDur = share;
+      prevSl.tlDur = share;
+    } else {
+      distributeSlides();
+    }
+    renderTimeline();
+  }
+};
 const _origDeleteSlide = deleteSlide;
-deleteSlide = function(i) { _origDeleteSlide(i); saveState(); if (state.bgVideo) { distributeSlides(); renderTimeline(); } };
+deleteSlide = function(i) {
+  // 삭제되는 슬라이드의 시간을 다음 슬라이드에 병합
+  const deleted = state.slides[i];
+  const nextIdx = i < state.slides.length - 1 ? i + 1 : i - 1;
+  _origDeleteSlide(i); saveState();
+  if (state.bgVideo && deleted && deleted.tlDur && state.slides[Math.min(nextIdx, state.slides.length - 1)]) {
+    const target = state.slides[Math.min(nextIdx, state.slides.length - 1)];
+    target.tlDur = (target.tlDur || 0) + (deleted.tlDur || 0);
+    if (i === 0 && state.slides.length) state.slides[0].tlStart = 0;
+    renderTimeline();
+  } else if (state.bgVideo) {
+    distributeSlides(); renderTimeline();
+  }
+};
 
 // ─── TIMELINE ───
 const BG_COLORS_FOR_TL = ['#3B82F6','#8B5CF6','#EC4899','#F59E0B','#10B981','#6366F1','#EF4444','#14B8A6','#F97316','#84CC16'];
@@ -2591,6 +2614,19 @@ $('exportVideoBtn').onclick = async () => {
     }
     selectSlide(prevSlide);
 
+    // 1b) 슬라이드별 배경 이미지를 Image 객체로 미리 로드
+    const _slideBgImages = [];
+    for (let i = 0; i < state.slides.length; i++) {
+      if (state.slides[i].bgImage) {
+        const img = new Image();
+        img.src = state.slides[i].bgImage;
+        await new Promise(r => { img.onload = r; img.onerror = r; });
+        _slideBgImages[i] = img;
+      } else {
+        _slideBgImages[i] = null;
+      }
+    }
+
     // 2) 녹화용 캔버스 생성
     const recCanvas = document.createElement('canvas');
     recCanvas.width = exportW;
@@ -2607,8 +2643,8 @@ $('exportVideoBtn').onclick = async () => {
     recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
 
     const totalDur = vid.duration;
-    const endTime = state.slides.reduce((max, sl) => Math.max(max, (sl.tlStart || 0) + (sl.tlDur || 0)), 0);
-    const renderDur = Math.min(totalDur, endTime);
+    const endTime = state.slides.length ? state.slides.reduce((max, sl) => Math.max(max, (sl.tlStart || 0) + (sl.tlDur || 0)), 0) : totalDur;
+    const renderDur = Math.min(totalDur, endTime) || totalDur;
 
     // 4) 녹화 시작
     btn.textContent = '🎬 녹화 중... 0%';
@@ -2628,14 +2664,6 @@ $('exportVideoBtn').onclick = async () => {
       vid.currentTime = t;
       await new Promise(r => { vid.onseeked = r; });
 
-      // 영상 프레임 그리기
-      ctx.drawImage(vid, 0, 0, exportW, exportH);
-
-      // 오버레이
-      const ovl = state.bgVideo ? (state.bgVideo.overlay || 30) : 30;
-      ctx.fillStyle = `rgba(0,0,0,${ovl / 100})`;
-      ctx.fillRect(0, 0, exportW, exportH);
-
       // 현재 시점 슬라이드 찾기
       let slideIdx = 0;
       for (let i = state.slides.length - 1; i >= 0; i--) {
@@ -2644,8 +2672,22 @@ $('exportVideoBtn').onclick = async () => {
           slideIdx = i; break;
         }
       }
+      const curSl = state.slides[slideIdx];
 
-      // 슬라이드 이미지 합성
+      // 영상 프레임 그리기
+      ctx.drawImage(vid, 0, 0, exportW, exportH);
+
+      // 슬라이드별 배경 이미지가 있으면 덮어 그리기
+      if (curSl.bgImage && _slideBgImages[slideIdx]) {
+        ctx.drawImage(_slideBgImages[slideIdx], 0, 0, exportW, exportH);
+      }
+
+      // 오버레이
+      const ovl = curSl.bgImage ? (curSl.bgOverlay || 30) : (state.bgVideo ? (state.bgVideo.overlay || 30) : 30);
+      ctx.fillStyle = `rgba(0,0,0,${ovl / 100})`;
+      ctx.fillRect(0, 0, exportW, exportH);
+
+      // 슬라이드 텍스트 이미지 합성
       const slideImg = slideImages[slideIdx];
       if (slideImg) {
         ctx.drawImage(slideImg, 0, 0, exportW, exportH);
