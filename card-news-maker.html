@@ -701,6 +701,73 @@
   <p>카드뉴스 메이커는 다양한 편집 도구가 포함되어 있어 PC 또는 태블릿(가로 모드)에서 사용해주세요.</p>
 </div>
 
+<!-- MODAL: 매뉴얼 -->
+<div class="modal-overlay" id="helpModal" style="display:none">
+  <div class="modal" style="width:560px;max-height:80vh;overflow-y:auto">
+    <h2>카드뉴스 메이커 매뉴얼</h2>
+
+    <h3 style="font-size:14px;margin:16px 0 8px">텍스트 서식</h3>
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px 8px;color:var(--text-secondary)">입력</th><th style="text-align:left;padding:6px 8px;color:var(--text-secondary)">결과</th></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>**굵게**</code></td><td style="padding:6px 8px"><strong>굵게</strong></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>*기울임*</code></td><td style="padding:6px 8px"><em>기울임</em></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>__밑줄__</code></td><td style="padding:6px 8px"><u>밑줄</u></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>~~취소선~~</code></td><td style="padding:6px 8px"><del>취소선</del></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>==하이라이트==</code></td><td style="padding:6px 8px"><mark style="background:rgba(255,230,0,0.4);padding:0 2px;border-radius:2px">하이라이트</mark></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>^위첨자^</code></td><td style="padding:6px 8px">E=mc<sup>2</sup></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>~아래첨자~</code></td><td style="padding:6px 8px">H<sub>2</sub>O</td></tr>
+    </table>
+
+    <h3 style="font-size:14px;margin:16px 0 8px">확장 서식 <code style="font-size:11px">{스타일 텍스트}</code></h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">쉼표로 여러 스타일 조합 가능</p>
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px 8px;color:var(--text-secondary)">입력</th><th style="text-align:left;padding:6px 8px;color:var(--text-secondary)">설명</th></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{red 텍스트}</code></td><td style="padding:6px 8px"><span style="color:red">글자색</span> (색상이름 또는 #hex)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{bg:yellow 텍스트}</code></td><td style="padding:6px 8px"><span style="background:yellow;padding:0 3px;border-radius:2px">배경색</span></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{outline:white 텍스트}</code></td><td style="padding:6px 8px">외곽선 (색상 지정)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{bold 텍스트}</code></td><td style="padding:6px 8px"><strong>굵게</strong> (b로 축약 가능)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{italic 텍스트}</code></td><td style="padding:6px 8px"><em>기울임</em> (i로 축약 가능)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{underline 텍스트}</code></td><td style="padding:6px 8px"><u>밑줄</u> (u로 축약 가능)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{strike 텍스트}</code></td><td style="padding:6px 8px"><del>취소선</del> (s로 축약 가능)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{big 텍스트}</code></td><td style="padding:6px 8px"><span style="font-size:1.3em">크게</span> (1.3배)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{small 텍스트}</code></td><td style="padding:6px 8px"><span style="font-size:0.75em">작게</span> (0.75배)</td></tr>
+    </table>
+
+    <h3 style="font-size:14px;margin:16px 0 8px">조합 예시</h3>
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{red,bold 강조 텍스트}</code></td><td style="padding:6px 8px"><span style="color:red;font-weight:bold">빨간 굵은 글자</span></td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{white,outline:black 흰 외곽}</code></td><td style="padding:6px 8px">흰 글자 + 검정 외곽선</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px"><code>{big,red,bg:yellow 핵심}</code></td><td style="padding:6px 8px"><span style="font-size:1.3em;color:red;background:yellow;padding:0 3px;border-radius:2px">크고 빨간 노란배경</span></td></tr>
+    </table>
+
+    <h3 style="font-size:14px;margin:16px 0 8px">배경 이미지 조작</h3>
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">마우스 휠</td><td style="padding:6px 8px">카드 위에서 줌 인/아웃</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">드래그</td><td style="padding:6px 8px">카드 위에서 이미지 위치 조정</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">채우기/맞추기/원본</td><td style="padding:6px 8px">프리셋 줌 적용</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">배경 확장</td><td style="padding:6px 8px">AI로 이미지를 카드 비율에 맞게 확장</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">배경 교체</td><td style="padding:6px 8px">피사체 유지, 배경만 AI로 교체</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">텍스트 제거</td><td style="padding:6px 8px">이미지 내 텍스트/워터마크 AI 제거</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">좌우 반전</td><td style="padding:6px 8px">이미지 좌우 반전 (즉시)</td></tr>
+    </table>
+
+    <h3 style="font-size:14px;margin:16px 0 8px">권장 이미지 사이즈</h3>
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px">1:1</td><td style="padding:6px 8px">1080 x 1080 px</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px">3:4</td><td style="padding:6px 8px">1080 x 1440 px</td></tr>
+    </table>
+
+    <h3 style="font-size:14px;margin:16px 0 8px">단축키</h3>
+    <table style="width:100%;font-size:12px;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;font-weight:600">▦ 버튼</td><td style="padding:6px 8px">격자 가이드 토글 (저장 시 자동 해제)</td></tr>
+    </table>
+
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-primary" onclick="$('helpModal').style.display='none'">닫기</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: API KEY -->
 <div class="modal-overlay" id="apiModal">
   <div class="modal">
@@ -750,6 +817,7 @@
       <button class="btn btn-ghost btn-sm" id="projectSwitchBtn" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📂 프로젝트 없음</button>
     </div>
     <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" id="helpBtn" onclick="$('helpModal').style.display='flex'">? 도움말</button>
       <button class="btn btn-ghost btn-sm" id="apiSettingBtn">⚙ API 키</button>
       <button class="btn btn-ghost btn-sm" id="exportBtn">↓ PNG 저장</button>
       <button class="btn btn-ghost btn-sm" id="exportAllBtn">↓ 전체 ZIP</button>
@@ -942,6 +1010,16 @@
             </label>
           </label>
           <textarea id="bodyInput" placeholder="본문 내용 (줄바꿈 가능)"></textarea>
+          <details style="margin-top:4px">
+            <summary style="font-size:10px;color:var(--text-secondary);cursor:pointer">서식 도움말</summary>
+            <div class="hint-text" style="margin-top:4px;line-height:1.8;font-size:10px">
+              <code>**굵게**</code> <code>*기울임*</code> <code>__밑줄__</code> <code>~~취소선~~</code><br>
+              <code>==하이라이트==</code> <code>^위첨자^</code> <code>~아래첨자~</code><br>
+              <code>{red 빨간글}</code> <code>{outline:white 외곽}</code><br>
+              <code>{red,bold,outline:black 조합}</code><br>
+              자세한 내용은 상단 <strong>? 도움말</strong> 참고
+            </div>
+          </details>
         </div>
         <div class="form-group">
           <label style="display:flex;align-items:center;justify-content:space-between">
@@ -1487,6 +1565,65 @@ function deleteSlide(i) {
 
 addSlideBtn.onclick = addSlide;
 
+// ─── MINI MARKDOWN ───
+function miniMd(text) {
+  if (!text) return '';
+  let s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  // {스타일 텍스트} — 복합 스타일 지원 (쉼표로 조합)
+  // 예: {red,bold,outline:white 텍스트}
+  const COLOR_NAMES = 'red|blue|green|orange|purple|pink|white|black|gray|grey|brown|cyan|magenta|yellow|navy|teal|lime|coral|tomato|gold|silver';
+  const COLOR_RE = `#[0-9a-fA-F]{3,8}|${COLOR_NAMES}`;
+
+  s = s.replace(/\{([^}]+?) ([^}]+)\}/g, (match, stylePart, content) => {
+    const tokens = stylePart.split(',').map(t => t.trim().toLowerCase());
+    let css = '';
+    for (const tok of tokens) {
+      // color:값 or 색상이름 or #hex
+      if (/^color[: ]/.test(tok)) {
+        css += `color:${tok.replace(/^color[: ]/, '')};`;
+      } else if (new RegExp(`^(${COLOR_RE})$`, 'i').test(tok)) {
+        css += `color:${tok};`;
+      }
+      // bg:값
+      else if (/^bg[: ]/.test(tok)) {
+        css += `background:${tok.replace(/^bg[: ]/, '')};padding:0 3px;border-radius:2px;`;
+      }
+      // outline:값
+      else if (/^outline[: ]/.test(tok)) {
+        const oc = tok.replace(/^outline[: ]/, '') || 'black';
+        const w = 1.5;
+        const sh = [];
+        for (let i = 0; i < 12; i++) {
+          const a = (2 * Math.PI * i) / 12;
+          sh.push(`${(Math.cos(a)*w).toFixed(1)}px ${(Math.sin(a)*w).toFixed(1)}px 0 ${oc}`);
+        }
+        css += `text-shadow:${sh.join(',')};`;
+      }
+      // bold, italic, underline, strike
+      else if (tok === 'bold' || tok === 'b') css += 'font-weight:bold;';
+      else if (tok === 'italic' || tok === 'i') css += 'font-style:italic;';
+      else if (tok === 'underline' || tok === 'u') css += 'text-decoration:underline;';
+      else if (tok === 'strike' || tok === 's') css += 'text-decoration:line-through;';
+      // big, small
+      else if (tok === 'big') css += 'font-size:1.3em;';
+      else if (tok === 'small') css += 'font-size:0.75em;';
+    }
+    return css ? `<span style="${css}">${content}</span>` : match;
+  });
+
+  // 표준 마크다운 문법
+  s = s.replace(/==(.+?)==/g, '<mark style="background:rgba(255,230,0,0.4);padding:0 2px;border-radius:2px">$1</mark>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/__(.+?)__/g, '<u>$1</u>');
+  s = s.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  s = s.replace(/\^(.+?)\^/g, '<sup>$1</sup>');
+  s = s.replace(/~([^~]+?)~/g, '<sub>$1</sub>');
+  s = s.replace(/\n/g, '<br>');
+  return s;
+}
+
 // ─── RENDER CARD ───
 function renderCard() {
   const sl = getSlide(state.current);
@@ -1564,7 +1701,7 @@ function renderCard() {
   cardTitleDisplay.style.textShadow = makeShadow(sl.textStrokeWidth || 0, sl.textStroke || '#000', 16);
   cardTitleDisplay.style.fontSize = sl.fontSize + 'px';
   cardTitleDisplay.style.textAlign = sl.align || 'center';
-  cardTitleDisplay.textContent = sl.title || '제목을 입력하세요';
+  cardTitleDisplay.innerHTML = miniMd(sl.title) || '<span style="opacity:0.3">제목을 입력하세요</span>';
   cardTitleDisplay.style.display = titleVisible ? 'block' : 'none';
 
   // 본문 스타일
@@ -1573,7 +1710,7 @@ function renderCard() {
   cardBodyDisplay.style.fontSize = (sl.bodyFontSize || 13) + 'px';
   cardBodyDisplay.style.lineHeight = sl.bodyLineHeight || 1.7;
   cardBodyDisplay.style.textAlign = sl.align || 'center';
-  cardBodyDisplay.textContent = sl.body || '본문 내용을 입력하세요';
+  cardBodyDisplay.innerHTML = miniMd(sl.body) || '<span style="opacity:0.3">본문 내용을 입력하세요</span>';
   cardBodyDisplay.style.display = bodyVisible ? 'block' : 'none';
 
   // 배지
@@ -3094,6 +3231,9 @@ $('createProjectBtn').onclick = async () => {
 
 $('projectModal').onclick = (e) => {
   if (e.target === $('projectModal')) $('projectModal').style.display = 'none';
+};
+$('helpModal').onclick = (e) => {
+  if (e.target === $('helpModal')) $('helpModal').style.display = 'none';
 };
 
 // auto-save on every change
