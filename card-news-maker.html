@@ -202,7 +202,7 @@
   .card-bg-video {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     z-index: 0;
     display: none;
     pointer-events: none;
@@ -1260,6 +1260,14 @@
               <span id="bgVideoName"></span>
             </div>
           </div>
+          <div class="form-group" id="bgVideoFitGroup" style="display:none;margin-top:8px">
+            <label style="margin-bottom:6px">영상 맞춤</label>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-ghost btn-sm videofit-btn active" data-vfit="cover" style="flex:1;justify-content:center">채우기</button>
+              <button class="btn btn-ghost btn-sm videofit-btn" data-vfit="contain" style="flex:1;justify-content:center">맞추기</button>
+            </div>
+            <div class="hint-text" id="videoFitHint">채우기: 크롭하여 가득 채움 / 맞추기: 영상 전체 보임</div>
+          </div>
           <div class="form-group" id="bgVideoOverlayGroup" style="display:none;margin-top:8px">
             <label>오버레이 어둡기</label>
             <input type="range" class="range-input" id="bgVideoOverlayRange" min="0" max="80" value="30">
@@ -1315,6 +1323,11 @@
           </div>
         </div>
         <div class="form-group">
+          <label style="margin-bottom:6px">텍스트 간격</label>
+          <input type="range" class="range-input" id="textGapRange" min="0" max="300" value="12">
+          <div class="hint-text" id="textGapVal">12px</div>
+        </div>
+        <div class="form-group">
           <label style="margin-bottom:4px">페이지 번호</label>
           <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
             <input type="checkbox" id="showPageNum" checked style="width:auto;accent-color:var(--accent)">
@@ -1330,7 +1343,7 @@
 
 <script>
 // ─── STATE ───
-const DEFAULT_SLIDE = { title: '', body: '', bg: '#FFFFFF', tc: '#1A1916', bodyTc: '#1A1916', fontSize: 22, bodyFontSize: 13, bodyLineHeight: 1.7, align: 'center', valign: 'center', padding: 32, padTop: null, padBottom: null, padLeft: null, padRight: null, divider: true, showPageNum: true, showTitle: true, showBody: true, badge: '', badgePos: 'left', showBadge: true, font: 'Noto Sans KR', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: 30, bgOverlayMode: 'dark', textStroke: '#000000', textStrokeWidth: 0, bodyStroke: '#000000', bodyStrokeWidth: 0 };
+const DEFAULT_SLIDE = { title: '', body: '', bg: '#FFFFFF', tc: '#1A1916', bodyTc: '#1A1916', fontSize: 22, bodyFontSize: 13, bodyLineHeight: 1.7, align: 'center', valign: 'center', padding: 32, padTop: null, padBottom: null, padLeft: null, padRight: null, textGap: 12, divider: true, showPageNum: true, showTitle: true, showBody: true, badge: '', badgePos: 'left', showBadge: true, font: 'Noto Sans KR', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: 30, bgOverlayMode: 'dark', textStroke: '#000000', textStrokeWidth: 0, bodyStroke: '#000000', bodyStrokeWidth: 0 };
 
 const state = {
   projectId: null,       // 현재 프로젝트 ID
@@ -1340,7 +1353,7 @@ const state = {
   apiKey: localStorage.getItem('cnm_api_key') || '',
   geminiKey: localStorage.getItem('cnm_gemini_key') || '',
   ratio: '1x1',
-  bgVideo: null,
+  bgVideo: null,        // { name, url, overlay, fit }
   bgVideoBlob: null,
 };
 
@@ -1478,6 +1491,8 @@ function selectSlide(i) {
     $('padLeft').value = sl.padLeft; $('padRight').value = sl.padRight;
     $('paddingSepVal').textContent = `${sl.padTop} / ${sl.padBottom} / ${sl.padLeft} / ${sl.padRight}`;
   }
+  $('textGapRange').value = sl.textGap ?? 12;
+  $('textGapVal').textContent = (sl.textGap ?? 12) + 'px';
   $('showDivider').checked = sl.divider;
   $('showPageNum').checked = sl.showPageNum !== false;
   $('showTitle').checked = sl.showTitle !== false;
@@ -1648,6 +1663,7 @@ function renderCard() {
       bgVid.play().catch(() => {});
     }
     bgVid.style.display = 'block';
+    bgVid.style.objectFit = state.bgVideo.fit || 'contain';
   } else {
     bgVid.style.display = 'none';
     bgVid.removeAttribute('src');
@@ -1703,6 +1719,8 @@ function renderCard() {
   cardTitleDisplay.style.textShadow = makeShadow(sl.textStrokeWidth || 0, sl.textStroke || '#000', 16);
   cardTitleDisplay.style.fontSize = sl.fontSize + 'px';
   cardTitleDisplay.style.textAlign = sl.align || 'center';
+  const gap = sl.textGap ?? 12;
+  cardTitleDisplay.style.marginBottom = gap + 'px';
   cardTitleDisplay.innerHTML = miniMd(sl.title) || '<span style="opacity:0.3">제목을 입력하세요</span>';
   cardTitleDisplay.style.display = titleVisible ? 'block' : 'none';
 
@@ -1725,7 +1743,8 @@ function renderCard() {
   cardBadge.style.right = isRight ? '18px' : 'auto';
   // 제목과 본문 모두 보일 때만 구분선 표시 가능
   cardDivider.style.display = (sl.divider && titleVisible && bodyVisible) ? 'block' : 'none';
-  cardDivider.style.margin = sl.align === 'left' ? '12px 0 12px 0' : sl.align === 'right' ? '12px 0 12px auto' : '12px auto';
+  const halfGap = Math.max(4, Math.round(gap / 2));
+  cardDivider.style.margin = sl.align === 'left' ? `${halfGap}px 0` : sl.align === 'right' ? `${halfGap}px 0 ${halfGap}px auto` : `${halfGap}px auto`;
   cardPageNum.textContent = `${state.current + 1} / ${state.slides.length}`;
   cardPageNum.style.display = sl.showPageNum !== false ? 'block' : 'none';
 }
@@ -1846,6 +1865,13 @@ $('showDivider').onchange = e => {
   setSlide(state.current, 'divider', e.target.checked);
   renderCard();
 };
+$('textGapRange').oninput = e => {
+  const v = parseInt(e.target.value);
+  setSlide(state.current, 'textGap', v);
+  $('textGapVal').textContent = v + 'px';
+  renderCard();
+};
+
 $('showPageNum').onchange = e => {
   setSlide(state.current, 'showPageNum', e.target.checked);
   renderCard();
@@ -1854,7 +1880,7 @@ $('showPageNum').onchange = e => {
 // 레이아웃 전체 적용
 $('applyLayoutAll').onclick = () => {
   const src = getSlide(state.current);
-  const keys = ['align', 'valign', 'padding', 'padTop', 'padBottom', 'padLeft', 'padRight', 'showPageNum'];
+  const keys = ['align', 'valign', 'padding', 'padTop', 'padBottom', 'padLeft', 'padRight', 'textGap', 'showPageNum'];
   state.slides.forEach((sl, i) => {
     if (i === state.current) return;
     keys.forEach(k => { sl[k] = src[k]; });
@@ -2109,11 +2135,13 @@ $('bgVideoInput').onchange = async e => {
   // 이전 objectURL 해제
   if (state.bgVideo && state.bgVideo.url) URL.revokeObjectURL(state.bgVideo.url);
   const url = URL.createObjectURL(file);
-  state.bgVideo = { name: file.name, url, overlay: 30 };
+  state.bgVideo = { name: file.name, url, overlay: 30, fit: 'contain' };
   state.bgVideoBlob = file;
   $('bgVideoInfo').style.display = 'block';
   $('bgVideoName').textContent = file.name;
   $('removeBgVideoBtn').style.display = 'inline-flex';
+  $('bgVideoFitGroup').style.display = 'block';
+  document.querySelectorAll('.videofit-btn').forEach(b => b.classList.toggle('active', b.dataset.vfit === 'contain'));
   $('bgVideoOverlayGroup').style.display = 'block';
   $('bgVideoOverlayRange').value = 30;
   $('bgVideoOverlayVal').textContent = '30%';
@@ -2132,11 +2160,22 @@ $('removeBgVideoBtn').onclick = () => {
   state.slides.forEach(sl => { delete sl.tlStart; delete sl.tlDur; });
   $('bgVideoInfo').style.display = 'none';
   $('removeBgVideoBtn').style.display = 'none';
+  $('bgVideoFitGroup').style.display = 'none';
   $('bgVideoOverlayGroup').style.display = 'none';
   hideTimeline();
   renderCard();
   saveState();
 };
+
+// Video fit toggle
+document.querySelectorAll('.videofit-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.videofit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (state.bgVideo) state.bgVideo.fit = btn.dataset.vfit;
+    renderCard(); saveState();
+  };
+});
 
 $('bgVideoOverlayRange').oninput = e => {
   const v = parseInt(e.target.value);
@@ -2982,7 +3021,7 @@ async function saveProjectData(projId) {
       slides: state.slides,
       ratio: state.ratio,
       current: state.current,
-      bgVideoMeta: state.bgVideo ? { name: state.bgVideo.name, overlay: state.bgVideo.overlay } : null,
+      bgVideoMeta: state.bgVideo ? { name: state.bgVideo.name, overlay: state.bgVideo.overlay, fit: state.bgVideo.fit || 'contain' } : null,
     }, projId);
     // 영상 blob
     if (state.bgVideoBlob) {
@@ -3025,11 +3064,13 @@ async function loadProjectData(projId) {
 
     if (videoBlob && data && data.bgVideoMeta) {
       const url = URL.createObjectURL(videoBlob);
-      state.bgVideo = { name: data.bgVideoMeta.name, url, overlay: data.bgVideoMeta.overlay ?? 30 };
+      state.bgVideo = { name: data.bgVideoMeta.name, url, overlay: data.bgVideoMeta.overlay ?? 30, fit: data.bgVideoMeta.fit || 'contain' };
       state.bgVideoBlob = videoBlob;
       $('bgVideoInfo').style.display = 'block';
       $('bgVideoName').textContent = data.bgVideoMeta.name;
       $('removeBgVideoBtn').style.display = 'inline-flex';
+      $('bgVideoFitGroup').style.display = 'block';
+      document.querySelectorAll('.videofit-btn').forEach(b => b.classList.toggle('active', b.dataset.vfit === (state.bgVideo.fit || 'contain')));
       $('bgVideoOverlayGroup').style.display = 'block';
       $('bgVideoOverlayRange').value = state.bgVideo.overlay;
       $('bgVideoOverlayVal').textContent = state.bgVideo.overlay + '%';
@@ -3043,6 +3084,7 @@ async function loadProjectData(projId) {
 function resetVideoUI() {
   $('bgVideoInfo').style.display = 'none';
   $('removeBgVideoBtn').style.display = 'none';
+  $('bgVideoFitGroup').style.display = 'none';
   $('bgVideoOverlayGroup').style.display = 'none';
   $('cardBgVideo').removeAttribute('src');
   $('cardBgVideo').style.display = 'none';
