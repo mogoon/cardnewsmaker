@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cardnews-v15';
+const CACHE_NAME = 'cardnews-v16';
 const ASSETS = [
   '/cardnews/',
   '/cardnews/index.html',

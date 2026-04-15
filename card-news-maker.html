@@ -1575,8 +1575,9 @@ function miniMd(text) {
   const COLOR_NAMES = 'red|blue|green|orange|purple|pink|white|black|gray|grey|brown|cyan|magenta|yellow|navy|teal|lime|coral|tomato|gold|silver';
   const COLOR_RE = `#[0-9a-fA-F]{3,8}|${COLOR_NAMES}`;
 
-  s = s.replace(/\{([^}]+?) ([^}]+)\}/g, (match, stylePart, content) => {
-    const tokens = stylePart.split(',').map(t => t.trim().toLowerCase());
+  // 스타일 토큰: 쉼표로 구분 (쉼표 뒤 공백 허용), 마지막 공백이 콘텐츠 구분
+  s = s.replace(/\{((?:\S+,\s*)*\S+)\s+(.+?)\}/g, (match, stylePart, content) => {
+    const tokens = stylePart.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
     let css = '';
     for (const tok of tokens) {
       // color:값 or 색상이름 or #hex
@@ -1619,7 +1620,8 @@ function miniMd(text) {
   s = s.replace(/__(.+?)__/g, '<u>$1</u>');
   s = s.replace(/~~(.+?)~~/g, '<del>$1</del>');
   s = s.replace(/\^(.+?)\^/g, '<sup>$1</sup>');
-  s = s.replace(/~([^~]+?)~/g, '<sub>$1</sub>');
+  // ~아래첨자~ — ~~취소선~~이 이미 <del>로 변환된 후이므로 남은 단독 ~ 매칭
+  s = s.replace(/~([^~<]+?)~/g, '<sub>$1</sub>');
   s = s.replace(/\n/g, '<br>');
   return s;
 }
@@ -1715,7 +1717,7 @@ function renderCard() {
 
   // 배지
   cardBadge.style.color = sl.tc;
-  cardBadge.style.textShadow = makeShadow(Math.max(0, (sl.textStrokeWidth || 0) * 0.5), sl.textStroke || '#000', 8);
+  cardBadge.style.textShadow = 'none';
   cardBadge.textContent = sl.badge || 'CARD';
   cardBadge.style.display = sl.showBadge !== false ? 'block' : 'none';
   const isRight = (sl.badgePos || 'left') === 'right';
@@ -1919,7 +1921,7 @@ document.querySelectorAll('.body-font-size-btn').forEach(btn => {
 });
 
 // BG image
-function resizeImage(file, maxDim = 1200) {
+function resizeImage(file, maxDim = 1080) {
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = e => {
@@ -2915,22 +2917,22 @@ function showToast(msg) {
 
 // ─── PERSISTENT STORAGE (IndexedDB + 프로젝트) ───
 const DB_NAME = 'cardnews_db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
       const db = req.result;
-      // v1 → v2: projects 스토어 추가
       if (!db.objectStoreNames.contains('projects')) {
         db.createObjectStore('projects', { keyPath: 'id' });
       }
       if (!db.objectStoreNames.contains('projectData')) {
         db.createObjectStore('projectData');
       }
-      if (!db.objectStoreNames.contains('appstate')) {
-        db.createObjectStore('appstate');
+      // v3: 미사용 appstate 스토어 제거
+      if (db.objectStoreNames.contains('appstate')) {
+        db.deleteObjectStore('appstate');
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -3644,28 +3646,6 @@ try {
   if (!state.projectId) {
     const projects = await getProjectList();
     if (!projects.length) {
-      // v1 데이터 마이그레이션: 기존 appstate에 데이터가 있으면 자동 프로젝트 생성
-      try {
-        const db = await openDB();
-        const tx = db.transaction('appstate', 'readonly');
-        const old = await dbGet(tx.objectStore('appstate'), 'state');
-        if (old && old.slides && old.slides.length > 1) {
-          const proj = await createProject('내 첫 프로젝트');
-          state.projectId = proj.id;
-          state.projectName = proj.name;
-          state.slides = old.slides;
-          state.ratio = old.ratio || '1x1';
-          state.current = 0;
-          updateProjectBtn();
-          applyRatio(state.ratio);
-          selectSlide(0);
-          renderCard();
-          renderSlideStrip();
-          saveState();
-          showToast('기존 데이터를 "내 첫 프로젝트"로 마이그레이션했습니다');
-          return;
-        }
-      } catch(e) {}
     }
     renderProjectList();
     $('projectModal').style.display = 'flex';
