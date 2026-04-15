@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>카드뉴스 메이커</title>
 <meta name="theme-color" content="#1A1916">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <script>if(location.protocol==='https:'){var l=document.createElement('link');l.rel='manifest';l.href='manifest.json';document.head.appendChild(l);var a=document.createElement('link');a.rel='apple-touch-icon';a.href='icon-192.png';document.head.appendChild(a);}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -485,6 +484,22 @@
     transition: all 0.1s;
   }
   .body-font-size-btn.active, .body-font-size-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .badge-pos-btn {
+    padding: 3px 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); cursor: pointer;
+    font-size: 11px; font-family: inherit; color: var(--text-primary);
+    transition: all 0.1s;
+  }
+  .badge-pos-btn.active, .badge-pos-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .overlay-mode-btn {
+    padding: 3px 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); cursor: pointer;
+    font-size: 11px; font-family: inherit; color: var(--text-primary);
+    transition: all 0.1s;
+  }
+  .overlay-mode-btn.active, .overlay-mode-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   .align-row { display: flex; gap: 4px; }
   .align-btn {
@@ -498,6 +513,29 @@
   .align-btn.active, .align-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
   .range-input { width: 100%; accent-color: var(--accent); }
+
+  /* ─── GRID GUIDE ─── */
+  .card-grid-overlay {
+    position: absolute; inset: 0;
+    z-index: 99;
+    pointer-events: none;
+    display: none;
+  }
+  .card-grid-overlay.active {
+    display: block;
+    background:
+      linear-gradient(to right, rgba(255,100,100,0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,100,100,0.3) 1px, transparent 1px);
+    background-size: 20% 20%;
+  }
+  .card-grid-overlay.active::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to right, rgba(255,100,100,0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,100,100,0.1) 1px, transparent 1px);
+    background-size: 4% 4%;
+  }
 
   /* ─── ACCORDION ─── */
   .accordion {
@@ -629,9 +667,39 @@
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ─── MOBILE NOTICE ─── */
+  .mobile-notice {
+    display: none;
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    gap: 16px;
+  }
+  .mobile-notice .mn-icon { font-size: 48px; opacity: 0.3; }
+  .mobile-notice h2 { font-size: 20px; font-weight: 700; }
+  .mobile-notice p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; max-width: 320px; }
+  .mobile-notice .btn { margin-top: 8px; }
+  @media (max-width: 768px) {
+    .mobile-notice { display: flex; }
+    header, .app-layout, .modal-overlay { display: none !important; }
+    body { overflow: hidden; }
+  }
 </style>
 </head>
 <body>
+
+<!-- MOBILE NOTICE -->
+<div class="mobile-notice" id="mobileNotice">
+  <div class="mn-icon">&#9000;</div>
+  <h2>데스크탑 환경을 권장합니다</h2>
+  <p>카드뉴스 메이커는 다양한 편집 도구가 포함되어 있어 PC 또는 태블릿(가로 모드)에서 사용해주세요.</p>
+</div>
 
 <!-- MODAL: API KEY -->
 <div class="modal-overlay" id="apiModal">
@@ -729,15 +797,48 @@
       <div class="form-group" id="imageStyleGroup" style="display:none">
         <label>이미지 스타일</label>
         <select id="imageStyleSelect">
-          <option value="minimal">미니멀 / 클린</option>
-          <option value="photo">사진 느낌</option>
-          <option value="illustration">일러스트레이션</option>
-          <option value="gradient">그라데이션 추상</option>
-          <option value="watercolor">수채화</option>
+          <option value="photo-scene">사진 — 풍경/장면</option>
+          <option value="photo-object">사진 — 사물/음식</option>
+          <option value="photo-person">사진 — 인물/라이프</option>
+          <option value="illustration">일러스트 — 캐릭터/장면</option>
+          <option value="flat">일러스트 — 플랫/아이콘</option>
+          <option value="watercolor">수채화/아트</option>
+          <option value="gradient">그라데이션 패턴</option>
+          <option value="minimal">미니멀 배경</option>
         </select>
       </div>
       <button class="btn btn-primary" id="generateBtn" style="width:100%">
         ✦ 카드뉴스 생성
+      </button>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">배경 이미지 생성</div>
+      <div class="ai-badge"><div class="ai-dot"></div>Gemini</div>
+      <p class="hint-text" style="margin-bottom:10px">현재 슬라이드의 제목/본문을 분석하여 배경 이미지를 생성합니다.</p>
+      <div class="form-group">
+        <label>이미지 스타일</label>
+        <select id="bgGenStyleSelect">
+          <option value="photo-scene">사진 — 풍경/장면</option>
+          <option value="photo-object">사진 — 사물/음식</option>
+          <option value="photo-person">사진 — 인물/라이프</option>
+          <option value="illustration">일러스트 — 캐릭터/장면</option>
+          <option value="flat">일러스트 — 플랫/아이콘</option>
+          <option value="watercolor">수채화/아트</option>
+          <option value="gradient">그라데이션 패턴</option>
+          <option value="minimal">미니멀 배경</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>대상</label>
+        <select id="bgGenTarget">
+          <option value="current">현재 슬라이드만</option>
+          <option value="empty">이미지 없는 슬라이드</option>
+          <option value="all">전체 슬라이드</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost" id="bgGenBtn" style="width:100%;justify-content:center">
+        🖼 배경 이미지 생성
       </button>
     </div>
 
@@ -768,7 +869,12 @@
       </button>
     </div>
 
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-ghost btn-sm" id="gridToggleBtn" title="격자 가이드">▦</button>
+    </div>
+
     <div class="canvas-wrapper" id="cardCanvas">
+      <div class="card-grid-overlay" id="cardGrid"></div>
       <div class="card-preview" id="cardPreview">
         <video class="card-bg-video" id="cardBgVideo" muted loop playsinline></video>
         <div class="card-bg-image" id="cardBgImage"></div>
@@ -840,28 +946,33 @@
         <div class="form-group">
           <label style="display:flex;align-items:center;justify-content:space-between">
             브랜드 이름
-            <div class="align-row" style="gap:2px">
-              <button class="badge-pos-btn align-btn active" data-badgepos="left" style="padding:3px 8px;font-size:11px">좌</button>
-              <button class="badge-pos-btn align-btn" data-badgepos="right" style="padding:3px 8px;font-size:11px">우</button>
+            <div style="display:flex;align-items:center;gap:6px">
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;margin:0">
+                <input type="checkbox" id="showBadge" checked style="width:auto;accent-color:var(--accent)">표시
+              </label>
+              <div class="align-row" style="gap:2px">
+                <button class="badge-pos-btn active" data-badgepos="left" style="padding:3px 8px;font-size:11px">좌</button>
+                <button class="badge-pos-btn" data-badgepos="right" style="padding:3px 8px;font-size:11px">우</button>
+              </div>
             </div>
           </label>
-          <input type="text" id="badgeInput" placeholder="@계정명 또는 브랜드" />
-        </div>
-        <div class="form-group">
-          <label style="margin-bottom:6px">제목 크기</label>
-          <div class="font-size-row">
-            <button class="font-size-btn" data-size="16">S</button>
-            <button class="font-size-btn active" data-size="22">M</button>
-            <button class="font-size-btn" data-size="28">L</button>
-            <button class="font-size-btn" data-size="34">XL</button>
+          <div style="display:flex;gap:6px">
+            <input type="text" id="badgeInput" placeholder="@계정명 또는 브랜드" style="flex:1" />
+            <button class="btn btn-ghost btn-sm" id="applyBadgeAllBtn" title="전체 슬라이드에 적용" style="white-space:nowrap">전체 적용</button>
           </div>
         </div>
         <div class="form-group">
-          <label style="margin-bottom:4px">구분선</label>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-            <input type="checkbox" id="showDivider" checked style="width:auto;accent-color:var(--accent)">
-            구분선 표시
-          </label>
+          <label style="margin-bottom:6px">폰트</label>
+          <div style="display:flex;gap:6px;margin-bottom:6px">
+            <button class="btn btn-ghost btn-sm" id="loadFontsBtn" style="flex:1">
+              🔤 시스템 폰트 불러오기
+            </button>
+          </div>
+          <input type="text" id="fontSearch" placeholder="폰트 검색..." style="margin-bottom:6px;display:none" />
+          <div id="fontListWrap" style="display:none">
+            <div id="fontList" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;"></div>
+          </div>
+          <div class="hint-text" id="fontHint">Chrome/Edge에서 시스템 폰트를 불러올 수 있어요</div>
         </div>
       </div></div>
     </div>
@@ -901,6 +1012,23 @@
             </div>
           </div>
         </div>
+        <div class="form-group">
+          <label style="margin-bottom:6px">제목 크기</label>
+          <div class="font-size-row">
+            <button class="font-size-btn" data-size="16">S</button>
+            <button class="font-size-btn active" data-size="22">M</button>
+            <button class="font-size-btn" data-size="28">L</button>
+            <button class="font-size-btn" data-size="34">XL</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="margin-bottom:4px">구분선</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="showDivider" checked style="width:auto;accent-color:var(--accent)">
+            구분선 표시
+          </label>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="applyTitleStyleAll" style="width:100%;justify-content:center;margin-top:10px">제목 스타일 전체 적용</button>
       </div></div>
     </div>
 
@@ -948,28 +1076,12 @@
             <button class="body-font-size-btn" data-size="18">XL</button>
           </div>
         </div>
-      </div></div>
-    </div>
-
-    <!-- 폰트 -->
-    <div class="accordion" data-acc="font">
-      <div class="accordion-header">
-        <div class="panel-label">폰트</div>
-        <span class="accordion-arrow">▼</span>
-      </div>
-      <div class="accordion-body"><div class="accordion-body-inner">
         <div class="form-group">
-          <div style="display:flex;gap:6px;margin-bottom:6px">
-            <button class="btn btn-ghost btn-sm" id="loadFontsBtn" style="flex:1">
-              🔤 시스템 폰트 불러오기
-            </button>
-          </div>
-          <input type="text" id="fontSearch" placeholder="폰트 검색..." style="margin-bottom:6px;display:none" />
-          <div id="fontListWrap" style="display:none">
-            <div id="fontList" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;"></div>
-          </div>
-          <div class="hint-text" id="fontHint">Chrome/Edge에서 시스템 폰트를 불러올 수 있어요</div>
+          <label style="margin-bottom:6px">줄간격</label>
+          <input type="range" class="range-input" id="bodyLineHeight" min="1.0" max="3.0" step="0.1" value="1.7">
+          <div class="hint-text" id="bodyLineHeightVal">1.7</div>
         </div>
+        <button class="btn btn-ghost btn-sm" id="applyBodyStyleAll" style="width:100%;justify-content:center;margin-top:10px">본문 스타일 전체 적용</button>
       </div></div>
     </div>
 
@@ -999,7 +1111,10 @@
           <div class="hint-text" id="transparentHint" style="display:none">⬜ 투명 배경 — PNG로 저장 시 알파채널 포함</div>
         </div>
         <div class="form-group">
-          <label style="margin-bottom:6px">배경 이미지</label>
+          <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            배경 이미지
+            <span class="hint-text" id="bgSizeHint" style="margin:0;font-size:10px">권장: 1080x1080</span>
+          </label>
           <div style="display:flex;gap:6px">
             <label class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;cursor:pointer">
               🖼 이미지 선택
@@ -1008,20 +1123,49 @@
             <button class="btn btn-ghost btn-sm" id="removeBgImageBtn" style="display:none">삭제</button>
           </div>
           <div id="bgImagePreview" style="display:none;margin-top:8px">
-            <div style="width:100%;height:60px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)">
-              <img id="bgImageThumb" style="width:100%;height:100%;object-fit:cover" />
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+              <div style="flex:1;height:50px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)">
+                <img id="bgImageThumb" style="width:100%;height:100%;object-fit:cover" />
+              </div>
+              <button class="btn btn-ghost btn-sm" id="applyBgAllBtn" title="전체 슬라이드에 적용" style="white-space:nowrap">전체 적용</button>
             </div>
           </div>
           <div class="form-group" id="bgImageFitGroup" style="display:none;margin-top:8px">
-            <label>줌</label>
-            <input type="range" class="range-input" id="bgZoomRange" min="100" max="300" value="100">
-            <div class="hint-text" id="bgZoomVal">100%</div>
-            <div class="hint-text" style="margin-top:4px;opacity:0.6">카드 미리보기에서 드래그하여 위치 조정</div>
+            <div style="display:flex;gap:4px;margin-bottom:6px">
+              <button class="btn btn-ghost btn-sm bgfit-preset" data-preset="cover" style="flex:1;justify-content:center">채우기</button>
+              <button class="btn btn-ghost btn-sm bgfit-preset" data-preset="contain" style="flex:1;justify-content:center">맞추기</button>
+              <button class="btn btn-ghost btn-sm bgfit-preset" data-preset="original" style="flex:1;justify-content:center">원본</button>
+            </div>
+            <div class="hint-text" id="bgZoomInfo">줌 100%</div>
+            <div class="hint-text" style="margin-top:4px;opacity:0.6">휠: 줌 / 드래그: 위치 조정</div>
           </div>
           <div class="form-group" id="bgOverlayGroup" style="display:none;margin-top:8px">
-            <label>오버레이 어둡기</label>
+            <label style="display:flex;align-items:center;justify-content:space-between">
+              오버레이
+              <div class="align-row" style="gap:2px">
+                <button class="overlay-mode-btn active" data-ovmode="dark" style="padding:3px 8px;font-size:11px">어둡게</button>
+                <button class="overlay-mode-btn" data-ovmode="light" style="padding:3px 8px;font-size:11px">밝게</button>
+              </div>
+            </label>
             <input type="range" class="range-input" id="bgOverlayRange" min="0" max="80" value="30">
             <div class="hint-text" id="bgOverlayVal">30%</div>
+          </div>
+          <div class="form-group" id="bgAiEditGroup" style="display:none;margin-top:8px">
+            <label style="margin-bottom:6px">이미지 편집</label>
+            <div style="display:flex;gap:4px;margin-bottom:6px">
+              <button class="btn btn-ghost btn-sm" id="bgFlipBtn" style="flex:1;justify-content:center">좌우 반전</button>
+              <button class="btn btn-ghost btn-sm" id="bgRemoveTextBtn" style="flex:1;justify-content:center">텍스트 제거</button>
+            </div>
+            <label style="margin-bottom:6px;margin-top:8px">AI 편집 <span style="font-weight:300;font-size:10px;color:var(--text-secondary)">(Gemini)</span></label>
+            <div style="display:flex;gap:4px;margin-bottom:6px">
+              <button class="btn btn-ghost btn-sm" id="bgExpandBtn" style="flex:1;justify-content:center">배경 확장</button>
+              <button class="btn btn-ghost btn-sm" id="bgReplaceBgBtn" style="flex:1;justify-content:center">배경 교체</button>
+            </div>
+            <div id="bgReplaceOptions" style="display:none;margin-top:6px">
+              <input type="text" id="bgReplacePrompt" placeholder="새 배경 설명 (예: 벚꽃이 만개한 공원)" style="margin-bottom:6px" />
+              <button class="btn btn-primary btn-sm" id="bgReplaceGoBtn" style="width:100%;justify-content:center">배경 교체 실행</button>
+            </div>
+            <div class="hint-text" id="bgAiEditStatus"></div>
           </div>
         </div>
         <div class="form-group">
@@ -1072,10 +1216,34 @@
           </div>
         </div>
         <div class="form-group">
-          <label style="margin-bottom:6px">패딩</label>
-          <input type="range" class="range-input" id="paddingRange" min="16" max="60" value="32">
-          <div class="hint-text" id="paddingVal">32px</div>
+          <label style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            패딩
+            <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;margin:0">
+              <input type="checkbox" id="paddingSeparate" style="width:auto;accent-color:var(--accent)">개별
+            </label>
+          </label>
+          <div id="paddingUniform">
+            <input type="range" class="range-input" id="paddingRange" min="0" max="80" value="32">
+            <div class="hint-text" id="paddingVal">32px</div>
+          </div>
+          <div id="paddingSeparateGroup" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div><label style="font-size:10px;color:var(--text-secondary)">상</label><input type="range" class="range-input" id="padTop" min="0" max="80" value="32"></div>
+              <div><label style="font-size:10px;color:var(--text-secondary)">하</label><input type="range" class="range-input" id="padBottom" min="0" max="80" value="32"></div>
+              <div><label style="font-size:10px;color:var(--text-secondary)">좌</label><input type="range" class="range-input" id="padLeft" min="0" max="80" value="32"></div>
+              <div><label style="font-size:10px;color:var(--text-secondary)">우</label><input type="range" class="range-input" id="padRight" min="0" max="80" value="32"></div>
+            </div>
+            <div class="hint-text" id="paddingSepVal">32 / 32 / 32 / 32</div>
+          </div>
         </div>
+        <div class="form-group">
+          <label style="margin-bottom:4px">페이지 번호</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="showPageNum" checked style="width:auto;accent-color:var(--accent)">
+            페이지 번호 표시
+          </label>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="applyLayoutAll" style="width:100%;justify-content:center;margin-top:10px">현재 레이아웃을 전체 슬라이드에 적용</button>
       </div></div>
     </div>
 
@@ -1084,7 +1252,7 @@
 
 <script>
 // ─── STATE ───
-const DEFAULT_SLIDE = { title: '', body: '', bg: '#FFFFFF', tc: '#1A1916', bodyTc: '#1A1916', fontSize: 22, bodyFontSize: 13, align: 'center', valign: 'center', padding: 32, divider: true, showTitle: true, showBody: true, badge: '', badgePos: 'left', font: 'Noto Sans KR', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: 30, textStroke: '#000000', textStrokeWidth: 0, bodyStroke: '#000000', bodyStrokeWidth: 0 };
+const DEFAULT_SLIDE = { title: '', body: '', bg: '#FFFFFF', tc: '#1A1916', bodyTc: '#1A1916', fontSize: 22, bodyFontSize: 13, bodyLineHeight: 1.7, align: 'center', valign: 'center', padding: 32, padTop: null, padBottom: null, padLeft: null, padRight: null, divider: true, showPageNum: true, showTitle: true, showBody: true, badge: '', badgePos: 'left', showBadge: true, font: 'Noto Sans KR', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: 30, bgOverlayMode: 'dark', textStroke: '#000000', textStrokeWidth: 0, bodyStroke: '#000000', bodyStrokeWidth: 0 };
 
 const state = {
   projectId: null,       // 현재 프로젝트 ID
@@ -1143,6 +1311,13 @@ $('apiSettingBtn').onclick = () => {
   apiModal.style.display = 'flex';
 };
 
+// ─── GRID GUIDE ───
+$('gridToggleBtn').onclick = () => {
+  $('cardGrid').classList.toggle('active');
+  $('gridToggleBtn').classList.toggle('btn-primary');
+  $('gridToggleBtn').classList.toggle('btn-ghost');
+};
+
 // ─── RATIO TOGGLE ───
 function applyRatio(ratio) {
   state.ratio = ratio;
@@ -1155,6 +1330,7 @@ function applyRatio(ratio) {
   document.querySelectorAll('.ratio-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.ratio === ratio);
   });
+  $('bgSizeHint').textContent = ratio === '3x4' ? '권장: 1080x1440' : '권장: 1080x1080';
 
   // update all thumbs
   document.querySelectorAll('.slide-thumb').forEach(th => {
@@ -1210,10 +1386,22 @@ function selectSlide(i) {
   $('titleInput').value = sl.title;
   $('bodyInput').value = sl.body;
   $('badgeInput').value = sl.badge || '';
+  $('showBadge').checked = sl.showBadge !== false;
+  $('badgeInput').style.opacity = sl.showBadge !== false ? '1' : '0.4';
   document.querySelectorAll('.badge-pos-btn').forEach(b => b.classList.toggle('active', b.dataset.badgepos === (sl.badgePos || 'left')));
+  const hasSepPad = sl.padTop != null;
+  $('paddingSeparate').checked = hasSepPad;
+  $('paddingUniform').style.display = hasSepPad ? 'none' : 'block';
+  $('paddingSeparateGroup').style.display = hasSepPad ? 'block' : 'none';
   $('paddingRange').value = sl.padding;
   $('paddingVal').textContent = sl.padding + 'px';
+  if (hasSepPad) {
+    $('padTop').value = sl.padTop; $('padBottom').value = sl.padBottom;
+    $('padLeft').value = sl.padLeft; $('padRight').value = sl.padRight;
+    $('paddingSepVal').textContent = `${sl.padTop} / ${sl.padBottom} / ${sl.padLeft} / ${sl.padRight}`;
+  }
   $('showDivider').checked = sl.divider;
+  $('showPageNum').checked = sl.showPageNum !== false;
   $('showTitle').checked = sl.showTitle !== false;
   $('showBody').checked = sl.showBody !== false;
   $('titleInput').style.opacity = sl.showTitle !== false ? '1' : '0.4';
@@ -1240,6 +1428,8 @@ function selectSlide(i) {
   document.querySelectorAll('.body-font-size-btn').forEach(btn => {
     btn.classList.toggle('active', parseInt(btn.dataset.size) === (sl.bodyFontSize || 13));
   });
+  $('bodyLineHeight').value = sl.bodyLineHeight || 1.7;
+  $('bodyLineHeightVal').textContent = sl.bodyLineHeight || 1.7;
 
   // bg image sync
   const hasBgImg = !!sl.bgImage;
@@ -1247,12 +1437,13 @@ function selectSlide(i) {
   $('removeBgImageBtn').style.display = hasBgImg ? 'inline-flex' : 'none';
   $('bgImageFitGroup').style.display = hasBgImg ? 'block' : 'none';
   $('bgOverlayGroup').style.display = hasBgImg ? 'block' : 'none';
+  $('bgAiEditGroup').style.display = hasBgImg ? 'block' : 'none';
   if (hasBgImg) {
     $('bgImageThumb').src = sl.bgImage;
-    $('bgZoomRange').value = sl.bgZoom || 100;
-    $('bgZoomVal').textContent = (sl.bgZoom || 100) + '%';
+    $('bgZoomInfo').textContent = `줌 ${sl.bgZoom || 100}%`;
     $('bgOverlayRange').value = sl.bgOverlay || 30;
     $('bgOverlayVal').textContent = (sl.bgOverlay || 30) + '%';
+    document.querySelectorAll('.overlay-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.ovmode === (sl.bgOverlayMode || 'dark')));
   }
 
   // bg swatch sync
@@ -1331,7 +1522,8 @@ function renderCard() {
     bgImg.style.backgroundSize = (sl.bgZoom || 100) + '%';
     bgImg.style.backgroundPosition = `${sl.bgPosX ?? 50}% ${sl.bgPosY ?? 50}%`;
     bgImg.style.display = 'block';
-    bgOvr.style.background = `rgba(0,0,0,${(sl.bgOverlay || 30) / 100})`;
+    const ovColor = (sl.bgOverlayMode || 'dark') === 'light' ? '255,255,255' : '0,0,0';
+    bgOvr.style.background = `rgba(${ovColor},${(sl.bgOverlay || 30) / 100})`;
     bgOvr.style.display = 'block';
   } else if (hasVideo) {
     bgImg.style.backgroundImage = 'none';
@@ -1345,7 +1537,11 @@ function renderCard() {
     bgOvr.style.background = 'transparent';
     bgOvr.style.display = 'none';
   }
-  cardPreview.style.padding = sl.padding + 'px';
+  if (sl.padTop != null) {
+    cardPreview.style.padding = `${sl.padTop}px ${sl.padRight}px ${sl.padBottom}px ${sl.padLeft}px`;
+  } else {
+    cardPreview.style.padding = sl.padding + 'px';
+  }
   cardPreview.style.textAlign = sl.align;
   cardPreview.style.alignItems = sl.align === 'left' ? 'flex-start' : sl.align === 'right' ? 'flex-end' : 'center';
   cardPreview.style.justifyContent = sl.valign || 'center';
@@ -1367,6 +1563,7 @@ function renderCard() {
   cardTitleDisplay.style.color = sl.tc;
   cardTitleDisplay.style.textShadow = makeShadow(sl.textStrokeWidth || 0, sl.textStroke || '#000', 16);
   cardTitleDisplay.style.fontSize = sl.fontSize + 'px';
+  cardTitleDisplay.style.textAlign = sl.align || 'center';
   cardTitleDisplay.textContent = sl.title || '제목을 입력하세요';
   cardTitleDisplay.style.display = titleVisible ? 'block' : 'none';
 
@@ -1374,6 +1571,8 @@ function renderCard() {
   cardBodyDisplay.style.color = sl.bodyTc || sl.tc;
   cardBodyDisplay.style.textShadow = makeShadow(sl.bodyStrokeWidth || 0, sl.bodyStroke || '#000', 16);
   cardBodyDisplay.style.fontSize = (sl.bodyFontSize || 13) + 'px';
+  cardBodyDisplay.style.lineHeight = sl.bodyLineHeight || 1.7;
+  cardBodyDisplay.style.textAlign = sl.align || 'center';
   cardBodyDisplay.textContent = sl.body || '본문 내용을 입력하세요';
   cardBodyDisplay.style.display = bodyVisible ? 'block' : 'none';
 
@@ -1381,6 +1580,7 @@ function renderCard() {
   cardBadge.style.color = sl.tc;
   cardBadge.style.textShadow = makeShadow(Math.max(0, (sl.textStrokeWidth || 0) * 0.5), sl.textStroke || '#000', 8);
   cardBadge.textContent = sl.badge || 'CARD';
+  cardBadge.style.display = sl.showBadge !== false ? 'block' : 'none';
   const isRight = (sl.badgePos || 'left') === 'right';
   cardBadge.style.left = isRight ? 'auto' : '18px';
   cardBadge.style.right = isRight ? '18px' : 'auto';
@@ -1388,6 +1588,7 @@ function renderCard() {
   cardDivider.style.display = (sl.divider && titleVisible && bodyVisible) ? 'block' : 'none';
   cardDivider.style.margin = sl.align === 'left' ? '12px 0 12px 0' : sl.align === 'right' ? '12px 0 12px auto' : '12px auto';
   cardPageNum.textContent = `${state.current + 1} / ${state.slides.length}`;
+  cardPageNum.style.display = sl.showPageNum !== false ? 'block' : 'none';
 }
 
 // ─── EDIT HANDLERS ───
@@ -1401,6 +1602,46 @@ $('bodyInput').oninput = e => {
 };
 $('badgeInput').oninput = e => {
   setSlide(state.current, 'badge', e.target.value);
+  renderCard();
+};
+// 제목 스타일 전체 적용
+$('applyTitleStyleAll').onclick = () => {
+  const src = getSlide(state.current);
+  const keys = ['tc', 'textStroke', 'textStrokeWidth', 'fontSize', 'divider'];
+  state.slides.forEach((sl, i) => {
+    if (i === state.current) return;
+    keys.forEach(k => { sl[k] = src[k]; });
+  });
+  saveState();
+  showToast(`제목 스타일을 ${state.slides.length}장에 적용했습니다`);
+};
+
+// 본문 스타일 전체 적용
+$('applyBodyStyleAll').onclick = () => {
+  const src = getSlide(state.current);
+  const keys = ['bodyTc', 'bodyStroke', 'bodyStrokeWidth', 'bodyFontSize', 'bodyLineHeight'];
+  state.slides.forEach((sl, i) => {
+    if (i === state.current) return;
+    keys.forEach(k => { sl[k] = src[k]; });
+  });
+  saveState();
+  showToast(`본문 스타일을 ${state.slides.length}장에 적용했습니다`);
+};
+
+$('applyBadgeAllBtn').onclick = () => {
+  const src = getSlide(state.current);
+  state.slides.forEach((sl, i) => {
+    if (i === state.current) return;
+    sl.badge = src.badge;
+    sl.badgePos = src.badgePos;
+    sl.showBadge = src.showBadge;
+  });
+  saveState();
+  showToast(`브랜드 이름을 ${state.slides.length}장에 적용했습니다`);
+};
+$('showBadge').onchange = e => {
+  setSlide(state.current, 'showBadge', e.target.checked);
+  $('badgeInput').style.opacity = e.target.checked ? '1' : '0.4';
   renderCard();
 };
 document.querySelectorAll('.badge-pos-btn').forEach(btn => {
@@ -1427,9 +1668,60 @@ $('paddingRange').oninput = e => {
   $('paddingVal').textContent = v + 'px';
   renderCard();
 };
+
+// 패딩 개별/전체 토글
+$('paddingSeparate').onchange = e => {
+  const sep = e.target.checked;
+  $('paddingUniform').style.display = sep ? 'none' : 'block';
+  $('paddingSeparateGroup').style.display = sep ? 'block' : 'none';
+  const sl = getSlide(state.current);
+  if (sep) {
+    const p = sl.padding || 32;
+    setSlide(state.current, 'padTop', p);
+    setSlide(state.current, 'padBottom', p);
+    setSlide(state.current, 'padLeft', p);
+    setSlide(state.current, 'padRight', p);
+    $('padTop').value = p; $('padBottom').value = p;
+    $('padLeft').value = p; $('padRight').value = p;
+    $('paddingSepVal').textContent = `${p} / ${p} / ${p} / ${p}`;
+  } else {
+    setSlide(state.current, 'padTop', null);
+    setSlide(state.current, 'padBottom', null);
+    setSlide(state.current, 'padLeft', null);
+    setSlide(state.current, 'padRight', null);
+  }
+  renderCard();
+};
+
+['padTop','padBottom','padLeft','padRight'].forEach(id => {
+  $(id).oninput = e => {
+    const v = parseInt(e.target.value);
+    setSlide(state.current, id, v);
+    const sl = getSlide(state.current);
+    $('paddingSepVal').textContent = `${sl.padTop} / ${sl.padBottom} / ${sl.padLeft} / ${sl.padRight}`;
+    renderCard();
+  };
+});
+
 $('showDivider').onchange = e => {
   setSlide(state.current, 'divider', e.target.checked);
   renderCard();
+};
+$('showPageNum').onchange = e => {
+  setSlide(state.current, 'showPageNum', e.target.checked);
+  renderCard();
+};
+
+// 레이아웃 전체 적용
+$('applyLayoutAll').onclick = () => {
+  const src = getSlide(state.current);
+  const keys = ['align', 'valign', 'padding', 'padTop', 'padBottom', 'padLeft', 'padRight', 'showPageNum'];
+  state.slides.forEach((sl, i) => {
+    if (i === state.current) return;
+    keys.forEach(k => { sl[k] = src[k]; });
+  });
+  saveState();
+  showToast(`레이아웃을 ${state.slides.length}장에 적용했습니다`);
 };
 
 // Title stroke
@@ -1468,6 +1760,14 @@ $('bodyStrokeWidthRange').oninput = e => {
   const v = parseFloat(e.target.value);
   setSlide(state.current, 'bodyStrokeWidth', v);
   $('bodyStrokeWidthVal').textContent = v > 0 ? v + 'px' : '0px (없음)';
+  renderCard();
+};
+
+// Body line height
+$('bodyLineHeight').oninput = e => {
+  const v = parseFloat(e.target.value);
+  setSlide(state.current, 'bodyLineHeight', v);
+  $('bodyLineHeightVal').textContent = v;
   renderCard();
 };
 
@@ -1510,6 +1810,19 @@ $('bgImageInput').onchange = async e => {
   if (!file) return;
   const dataUrl = await resizeImage(file);
   setSlide(state.current, 'bgImage', dataUrl);
+  // 자동 cover: 이미지를 카드에 꽉 채우기
+  const img = new Image();
+  img.onload = () => {
+    const cardW = RATIO_SIZES[state.ratio].w;
+    const cardH = RATIO_SIZES[state.ratio].h;
+    const scaleW = cardW / img.width * 100;
+    const scaleH = cardH / img.height * 100;
+    setSlide(state.current, 'bgZoom', Math.ceil(Math.max(scaleW, scaleH)));
+    setSlide(state.current, 'bgPosX', 50);
+    setSlide(state.current, 'bgPosY', 50);
+    updateZoomInfo(); renderCard();
+  };
+  img.src = dataUrl;
   $('bgImagePreview').style.display = 'block';
   $('bgImageThumb').src = dataUrl;
   $('removeBgImageBtn').style.display = 'inline-flex';
@@ -1525,16 +1838,77 @@ $('removeBgImageBtn').onclick = () => {
   $('removeBgImageBtn').style.display = 'none';
   $('bgImageFitGroup').style.display = 'none';
   $('bgOverlayGroup').style.display = 'none';
+  $('bgAiEditGroup').style.display = 'none';
   renderCard(); renderSlideStrip();
 };
 
-// BG zoom
-$('bgZoomRange').oninput = e => {
-  const v = parseInt(e.target.value);
-  setSlide(state.current, 'bgZoom', v);
-  $('bgZoomVal').textContent = v + '%';
-  renderCard();
+$('applyBgAllBtn').onclick = () => {
+  const src = getSlide(state.current);
+  if (!src.bgImage) return showToast('배경 이미지가 없습니다');
+  const keys = ['bgImage', 'bgZoom', 'bgPosX', 'bgPosY', 'bgOverlay', 'bgOverlayMode'];
+  state.slides.forEach((sl, i) => {
+    if (i === state.current) return;
+    keys.forEach(k => { sl[k] = src[k]; });
+  });
+  renderSlideStrip(); saveState();
+  showToast(`배경을 ${state.slides.length}장에 적용했습니다`);
 };
+
+// BG zoom (wheel)
+function updateZoomInfo() {
+  const sl = getSlide(state.current);
+  $('bgZoomInfo').textContent = `줌 ${sl.bgZoom || 100}%`;
+}
+
+$('cardCanvas').addEventListener('wheel', e => {
+  const sl = getSlide(state.current);
+  if (!sl.bgImage) return;
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -5 : 5;
+  const newZoom = Math.max(50, Math.min(400, (sl.bgZoom || 100) + delta));
+  sl.bgZoom = newZoom;
+  updateZoomInfo();
+  renderCard();
+  saveState();
+}, { passive: false });
+
+// BG fit presets
+document.querySelectorAll('.bgfit-preset').forEach(btn => {
+  btn.onclick = () => {
+    const sl = getSlide(state.current);
+    if (!sl.bgImage) return;
+    const preset = btn.dataset.preset;
+    if (preset === 'cover') {
+      // 이미지를 카드에 꽉 채우기 — bgZoom을 자동 계산
+      const img = new Image();
+      img.onload = () => {
+        const cardW = RATIO_SIZES[state.ratio].w;
+        const cardH = RATIO_SIZES[state.ratio].h;
+        const scaleW = cardW / img.width * 100;
+        const scaleH = cardH / img.height * 100;
+        sl.bgZoom = Math.ceil(Math.max(scaleW, scaleH));
+        sl.bgPosX = 50; sl.bgPosY = 50;
+        updateZoomInfo(); renderCard(); saveState();
+      };
+      img.src = sl.bgImage;
+    } else if (preset === 'contain') {
+      const img = new Image();
+      img.onload = () => {
+        const cardW = RATIO_SIZES[state.ratio].w;
+        const cardH = RATIO_SIZES[state.ratio].h;
+        const scaleW = cardW / img.width * 100;
+        const scaleH = cardH / img.height * 100;
+        sl.bgZoom = Math.floor(Math.min(scaleW, scaleH));
+        sl.bgPosX = 50; sl.bgPosY = 50;
+        updateZoomInfo(); renderCard(); saveState();
+      };
+      img.src = sl.bgImage;
+    } else {
+      sl.bgZoom = 100; sl.bgPosX = 50; sl.bgPosY = 50;
+      updateZoomInfo(); renderCard(); saveState();
+    }
+  };
+});
 
 // BG drag to reposition
 let _bgDragging = false;
@@ -1580,6 +1954,14 @@ $('bgOverlayRange').oninput = e => {
   $('bgOverlayVal').textContent = v + '%';
   renderCard();
 };
+document.querySelectorAll('.overlay-mode-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.overlay-mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    setSlide(state.current, 'bgOverlayMode', btn.dataset.ovmode);
+    renderCard();
+  };
+});
 
 // BG video (global)
 $('bgVideoInput').onchange = async e => {
@@ -1796,29 +2178,234 @@ $('genImageCheck').onchange = e => {
   }
 };
 
-async function generateImageWithGemini(prompt, aspectRatio) {
+// ─── AI IMAGE EDIT (Gemini with image input) ───
+async function editImageWithGemini(imageDataUrl, textPrompt) {
+  if (!state.geminiKey) throw new Error('Gemini API 키를 설정하세요');
+  // dataURL → base64 + mimeType
+  const match = imageDataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
+  if (!match) throw new Error('이미지 형식 오류');
+  const mimeType = match[1];
+  const base64Data = match[2];
+
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${state.geminiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${state.geminiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt + ` The image aspect ratio must be ${aspectRatio}.` }] }],
-        generationConfig: {
-          responseModalities: ['TEXT', 'IMAGE'],
-        }
+        contents: [{
+          parts: [
+            { inlineData: { mimeType, data: base64Data } },
+            { text: textPrompt }
+          ]
+        }],
+        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
       })
     }
   );
+
+  if (res.status === 429) {
+    const err = await res.json().catch(() => ({}));
+    if ((err.error?.message || '').includes('limit: 0')) {
+      throw new Error('Gemini 무료 쿼터가 소진되었습니다.');
+    }
+    throw new Error('Gemini API 요청 한도 초과. 잠시 후 다시 시도하세요.');
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error?.message || `Gemini 오류 (${res.status})`);
   }
+
   const data = await res.json();
   const parts = data.candidates?.[0]?.content?.parts || [];
   const imgPart = parts.find(p => p.inlineData);
-  if (!imgPart) return null;
+  if (!imgPart) throw new Error('이미지 생성 결과 없음');
   return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+}
+
+// 배경 확장 버튼
+// 좌우 반전 (Canvas, AI 불필요)
+$('bgFlipBtn').onclick = () => {
+  const sl = getSlide(state.current);
+  if (!sl.bgImage) return showToast('배경 이미지가 없습니다');
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    const ctx = c.getContext('2d');
+    ctx.translate(c.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, 0);
+    sl.bgImage = c.toDataURL('image/jpeg', 0.95);
+    $('bgImageThumb').src = sl.bgImage;
+    renderCard(); renderSlideStrip(); saveState();
+    showToast('좌우 반전 완료');
+  };
+  img.src = sl.bgImage;
+};
+
+// 텍스트 제거 (Gemini)
+$('bgRemoveTextBtn').onclick = async () => {
+  const sl = getSlide(state.current);
+  if (!sl.bgImage) return showToast('배경 이미지가 없습니다');
+  if (!state.geminiKey) return showToast('Gemini API 키를 설정하세요');
+  const btn = $('bgRemoveTextBtn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+  try {
+    const prompt = `Remove ALL text, watermarks, logos, and captions from this image. Fill the areas where text was with natural background content that seamlessly blends in. Keep everything else exactly the same. Output only the cleaned image.`;
+    const result = await editImageWithGemini(sl.bgImage, prompt);
+    sl.bgImage = result;
+    $('bgImageThumb').src = result;
+    renderCard(); renderSlideStrip(); saveState();
+    showToast('텍스트 제거 완료!');
+  } catch (e) {
+    showToast('텍스트 제거 실패: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '텍스트 제거';
+  }
+};
+
+$('bgExpandBtn').onclick = async () => {
+  const sl = getSlide(state.current);
+  if (!sl.bgImage) return showToast('배경 이미지가 없습니다');
+  if (!state.geminiKey) return showToast('Gemini API 키를 설정하세요');
+
+  const btn = $('bgExpandBtn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+  $('bgAiEditStatus').textContent = '';
+
+  try {
+    // 원본 이미지의 비율 확인
+    const img = new Image();
+    img.src = sl.bgImage;
+    await new Promise(r => { img.onload = r; });
+    const cardRatio = state.ratio === '3x4' ? 3/4 : 1;
+    const imgRatio = img.width / img.height;
+
+    // 이미지가 이미 카드 비율보다 넉넉하면 확장 불필요
+    const needWidth = imgRatio < cardRatio;  // 세로가 긴 이미지 → 좌우 확장
+    const needHeight = imgRatio > cardRatio; // 가로가 긴 이미지 → 상하 확장
+
+    const direction = needWidth ? 'left and right sides' : needHeight ? 'top and bottom' : 'all edges';
+    const targetRatio = state.ratio === '3x4' ? '3:4 portrait' : '1:1 square';
+
+    const prompt = `Outpaint and extend this image on the ${direction} to make it fit a ${targetRatio} aspect ratio. Seamlessly generate new content that naturally continues the scene, matching the original lighting, colors, style and perspective. Keep the original image content completely intact. The result should look like a single natural photograph. Output only the expanded image.`;
+    const result = await editImageWithGemini(sl.bgImage, prompt);
+    sl.bgImage = result;
+    // 확장 후 자동 cover
+    const newImg = new Image();
+    newImg.src = result;
+    await new Promise(r => { newImg.onload = r; });
+    const cardW = RATIO_SIZES[state.ratio].w;
+    const cardH = RATIO_SIZES[state.ratio].h;
+    const scaleW = cardW / newImg.width * 100;
+    const scaleH = cardH / newImg.height * 100;
+    sl.bgZoom = Math.ceil(Math.max(scaleW, scaleH));
+    sl.bgPosX = 50; sl.bgPosY = 50;
+    $('bgImageThumb').src = result;
+    updateZoomInfo();
+    renderCard(); renderSlideStrip(); saveState();
+    showToast('배경 확장 완료! 드래그로 위치를 조정하세요.');
+  } catch (e) {
+    showToast('배경 확장 실패: ' + e.message);
+    $('bgAiEditStatus').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '배경 확장';
+  }
+};
+
+// 배경 교체 토글
+$('bgReplaceBgBtn').onclick = () => {
+  const opts = $('bgReplaceOptions');
+  opts.style.display = opts.style.display === 'none' ? 'block' : 'none';
+};
+
+// 배경 교체 실행
+$('bgReplaceGoBtn').onclick = async () => {
+  const sl = getSlide(state.current);
+  if (!sl.bgImage) return showToast('배경 이미지가 없습니다');
+  if (!state.geminiKey) return showToast('Gemini API 키를 설정하세요');
+
+  const desc = $('bgReplacePrompt').value.trim();
+  if (!desc) return showToast('새 배경 설명을 입력하세요');
+
+  const btn = $('bgReplaceGoBtn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+  $('bgAiEditStatus').textContent = '';
+
+  try {
+    const prompt = `Replace ONLY the background of this image. Keep the main subject/person exactly as they are. Change the background to: ${desc}. The result should look natural and realistic. Output only the edited image, no text.`;
+    const result = await editImageWithGemini(sl.bgImage, prompt);
+    sl.bgImage = result;
+    $('bgImageThumb').src = result;
+    renderCard(); renderSlideStrip(); saveState();
+    showToast('배경 교체 완료!');
+  } catch (e) {
+    showToast('배경 교체 실패: ' + e.message);
+    $('bgAiEditStatus').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '배경 교체 실행';
+  }
+};
+
+function buildImagePrompt(style, theme) {
+  const prompts = {
+    'photo-scene': `A stunning professional photograph of a scene related to: ${theme}. Vivid colors, natural lighting, cinematic composition. Real landscape or environment. No text overlay.`,
+    'photo-object': `A professional product/food photograph related to: ${theme}. Close-up, shallow depth of field, studio-quality lighting, rich textures and details. No text overlay.`,
+    'photo-person': `A lifestyle photograph of a person in a setting related to: ${theme}. Natural pose, warm lighting, authentic moment. Candid and relatable. No text overlay.`,
+    'illustration': `A colorful detailed digital illustration depicting: ${theme}. Vibrant characters and scenes, storybook quality, expressive and engaging. No text overlay.`,
+    'flat': `A clean flat design illustration with simple icons and shapes representing: ${theme}. Bold colors, geometric forms, modern infographic style. No text overlay.`,
+    'watercolor': `A beautiful watercolor painting of: ${theme}. Soft brush strokes, flowing colors, artistic and dreamy atmosphere. Fine art quality. No text overlay.`,
+    'gradient': `An abstract gradient background inspired by: ${theme}. Smooth color transitions, geometric patterns, modern and sleek. Suitable as card background. No text overlay.`,
+    'minimal': `A minimalist background with subtle textures inspired by: ${theme}. Clean, soft muted colors, plenty of negative space. No text overlay.`,
+  };
+  return prompts[style] || prompts['minimal'];
+}
+
+async function generateImageWithGemini(prompt, aspectRatio, retries = 3) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${state.geminiKey}`;
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: prompt + ` The image aspect ratio must be ${aspectRatio}.` }] }],
+    generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+  });
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+
+    if (res.status === 429) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err.error?.message || '';
+      // 쿼터 완전 소진 (free tier limit: 0)
+      if (msg.includes('limit: 0')) {
+        throw new Error('Gemini 무료 쿼터가 소진되었습니다. Google AI Studio에서 유료 플랜을 확인하세요.');
+      }
+      // 일시적 rate limit → 재시도
+      if (attempt < retries) {
+        const wait = Math.min(2000 * (attempt + 1), 5000);
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+      throw new Error('Gemini API 요청 한도 초과. 잠시 후 다시 시도하세요.');
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Gemini 오류 (${res.status})`);
+    }
+
+    const data = await res.json();
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const imgPart = parts.find(p => p.inlineData);
+    if (!imgPart) return null;
+    return `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+  }
+  return null;
 }
 
 $('generateBtn').onclick = async () => {
@@ -1861,7 +2448,7 @@ ${imagePromptInstruction}
 
   try {
     const apiBody = JSON.stringify({
-      model: 'claude-sonnet-4-6-20250627',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }]
     });
@@ -1896,8 +2483,6 @@ ${imagePromptInstruction}
 
     // populate slides
     const currentFont = getSlide(state.current).font || 'Noto Sans KR';
-    const styleMap = { minimal: 'minimalist clean', photo: 'professional photograph', illustration: 'digital illustration', gradient: 'abstract gradient', watercolor: 'watercolor painting' };
-
     state.slides = parsed.slides.map((sl, i) => ({
       ...DEFAULT_SLIDE,
       title: sl.title,
@@ -1936,7 +2521,6 @@ ${imagePromptInstruction}
     // 이미지 생성 (Gemini)
     if (wantImages) {
       btn.innerHTML = '<div class="spinner"></div> 이미지 생성 중...';
-      const styleSuffix = styleMap[imageStyle] || 'minimalist clean';
       let successCount = 0;
 
       for (let i = 0; i < state.slides.length; i++) {
@@ -1945,7 +2529,7 @@ ${imagePromptInstruction}
         btn.innerHTML = `<div class="spinner"></div> 이미지 ${i + 1}/${state.slides.length}...`;
         try {
           const ratio = state.ratio === '3x4' ? '3:4' : '1:1';
-          const imgPrompt = `Create a ${styleSuffix} background image for a social media card. The image should have enough empty/blurred space for text overlay. Theme: ${sl._imagePrompt}. Style: soft, muted colors, no text in the image.`;
+          const imgPrompt = buildImagePrompt(imageStyle, sl._imagePrompt);
           const dataUrl = await generateImageWithGemini(imgPrompt, ratio);
           if (dataUrl) {
             sl.bgImage = dataUrl;
@@ -1954,6 +2538,8 @@ ${imagePromptInstruction}
           }
         } catch (imgErr) {
           console.warn(`Slide ${i + 1} 이미지 생성 실패:`, imgErr);
+          showToast('이미지 생성 실패: ' + imgErr.message);
+          if (imgErr.message.includes('쿼터') || imgErr.message.includes('한도')) break;
         }
         // 슬라이드가 현재 선택된 것이면 즉시 갱신
         if (i === state.current) renderCard();
@@ -1971,6 +2557,120 @@ ${imagePromptInstruction}
   } finally {
     btn.disabled = false;
     btn.innerHTML = '✦ 카드뉴스 생성';
+  }
+};
+
+// ─── BG IMAGE GENERATION (standalone) ───
+$('bgGenBtn').onclick = async () => {
+  if (!state.geminiKey) {
+    $('apiSettingBtn').click();
+    return showToast('Gemini API 키를 먼저 설정하세요');
+  }
+  if (!state.apiKey) {
+    $('apiSettingBtn').click();
+    return showToast('이미지 프롬프트 생성을 위해 Anthropic API 키가 필요합니다');
+  }
+
+  const target = $('bgGenTarget').value;
+  const style = $('bgGenStyleSelect').value;
+  const ratio = state.ratio === '3x4' ? '3:4' : '1:1';
+
+  // 대상 슬라이드 결정
+  let targets = [];
+  if (target === 'current') {
+    targets = [state.current];
+  } else if (target === 'empty') {
+    targets = state.slides.map((sl, i) => !sl.bgImage ? i : -1).filter(i => i >= 0);
+  } else {
+    targets = state.slides.map((_, i) => i);
+  }
+
+  if (!targets.length) return showToast('대상 슬라이드가 없습니다');
+
+  // 텍스트가 없는 슬라이드 체크
+  const emptyText = targets.filter(i => !state.slides[i].title && !state.slides[i].body);
+  if (emptyText.length === targets.length) return showToast('슬라이드에 텍스트를 먼저 입력하세요');
+
+  const btn = $('bgGenBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> 프롬프트 생성 중...';
+
+  try {
+    // 1) Claude에게 이미지 프롬프트 요청
+    const slideDescs = targets.map(i => {
+      const sl = state.slides[i];
+      return `Slide ${i + 1}: title="${sl.title || ''}", body="${sl.body || ''}"`;
+    }).join('\n');
+
+    const promptReq = `Based on these card news slides, generate an English image prompt for each slide's background.
+Each prompt should describe a background image suitable for social media card news with text overlay.
+The image should have soft/muted colors and enough empty space for text.
+
+${slideDescs}
+
+Respond in JSON only. Format:
+{"prompts": ["prompt for slide 1", "prompt for slide 2", ...]}`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: promptReq }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API 오류 (${res.status})`);
+    }
+
+    const data = await res.json();
+    const raw = data.content[0].text;
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('프롬프트 생성 실패');
+    const parsed = JSON.parse(jsonMatch[0]);
+    const prompts = parsed.prompts || [];
+
+    // 2) Gemini로 이미지 생성
+    let successCount = 0;
+    for (let j = 0; j < targets.length; j++) {
+      const i = targets[j];
+      const prompt = prompts[j];
+      if (!prompt) continue;
+      btn.innerHTML = `<div class="spinner"></div> 이미지 ${j + 1}/${targets.length}...`;
+      try {
+        const imgPrompt = buildImagePrompt(style, prompt);
+        const dataUrl = await generateImageWithGemini(imgPrompt, ratio);
+        if (dataUrl) {
+          state.slides[i].bgImage = dataUrl;
+          if (!state.slides[i].bgOverlay || state.slides[i].bgOverlay < 20) state.slides[i].bgOverlay = 40;
+          successCount++;
+          if (i === state.current) renderCard();
+          renderSlideStrip();
+        }
+      } catch (imgErr) {
+        console.warn(`Slide ${i + 1} 이미지 생성 실패:`, imgErr);
+        showToast('이미지 생성 실패: ' + imgErr.message);
+        // 쿼터 에러면 나머지 슬라이드 건너뛰기
+        if (imgErr.message.includes('쿼터') || imgErr.message.includes('한도')) break;
+      }
+    }
+    saveState();
+    selectSlide(state.current);
+    if (successCount > 0) showToast(`${successCount}장 배경 이미지 생성 완료!`);
+  } catch (e) {
+    showToast('오류: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🖼 배경 이미지 생성';
   }
 };
 
@@ -2013,6 +2713,9 @@ async function captureCard(index) {
   const prev = state.current;
   selectSlide(index);
   await new Promise(r => setTimeout(r, 60));
+  // 격자 가이드 숨기기
+  const gridWasActive = $('cardGrid').classList.contains('active');
+  if (gridWasActive) $('cardGrid').classList.remove('active');
   const froze = freezeVideoFrame();
   await new Promise(r => setTimeout(r, 30));
   const size = RATIO_SIZES[state.ratio];
@@ -2024,6 +2727,7 @@ async function captureCard(index) {
     backgroundColor: isTransparent ? null : undefined,
   });
   if (froze) unfreezeVideoFrame();
+  if (gridWasActive) $('cardGrid').classList.add('active');
   if (index !== prev) selectSlide(prev);
   return canvas;
 }
@@ -2209,9 +2913,15 @@ function resetVideoUI() {
 let _saveTimer;
 function saveState() {
   clearTimeout(_saveTimer);
-  _saveTimer = setTimeout(() => {
+  _saveTimer = setTimeout(async () => {
+    // 프로젝트 없으면 자동 생성
+    if (!state.projectId) {
+      const proj = await createProject('제목 없는 프로젝트');
+      state.projectId = proj.id;
+      state.projectName = proj.name;
+      updateProjectBtn();
+    }
     saveProjectData(state.projectId);
-    // 마지막 열린 프로젝트 기억
     localStorage.setItem('cnm_last_project', state.projectId || '');
   }, 300);
 }
@@ -2286,6 +2996,27 @@ async function renderProjectList() {
     info.appendChild(nameEl);
     info.appendChild(metaEl);
 
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:4px;align-items:center;flex-shrink:0';
+
+    const rename = document.createElement('span');
+    rename.className = 'proj-del';
+    rename.textContent = '✎';
+    rename.title = '이름 변경';
+    rename.onclick = async (e) => {
+      e.stopPropagation();
+      const newName = prompt('새 프로젝트 이름:', proj.name);
+      if (!newName || !newName.trim()) return;
+      try {
+        const db = await openDB();
+        const tx = db.transaction('projects', 'readwrite');
+        proj.name = newName.trim();
+        tx.objectStore('projects').put(proj);
+        if (state.projectId === proj.id) { state.projectName = proj.name; updateProjectBtn(); }
+        renderProjectList();
+      } catch(err) { showToast('이름 변경 실패'); }
+    };
+
     const del = document.createElement('span');
     del.className = 'proj-del';
     del.textContent = '×';
@@ -2312,8 +3043,10 @@ async function renderProjectList() {
       showToast('프로젝트 삭제됨');
     };
 
+    actions.appendChild(rename);
+    actions.appendChild(del);
     el.appendChild(info);
-    el.appendChild(del);
+    el.appendChild(actions);
     el.onclick = () => switchProject(proj.id);
     list.appendChild(el);
   });
@@ -2684,7 +3417,8 @@ $('exportVideoBtn').onclick = async () => {
 
       // 오버레이
       const ovl = curSl.bgImage ? (curSl.bgOverlay || 30) : (state.bgVideo ? (state.bgVideo.overlay || 30) : 30);
-      ctx.fillStyle = `rgba(0,0,0,${ovl / 100})`;
+      const ovMode = curSl.bgImage ? (curSl.bgOverlayMode || 'dark') : 'dark';
+      ctx.fillStyle = `rgba(${ovMode === 'light' ? '255,255,255' : '0,0,0'},${ovl / 100})`;
       ctx.fillRect(0, 0, exportW, exportH);
 
       // 슬라이드 텍스트 이미지 합성
