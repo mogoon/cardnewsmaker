@@ -227,6 +227,22 @@
     display: none;
     pointer-events: none;
   }
+  .card-band {
+    position: absolute;
+    left: 0; right: 0;
+    z-index: 3;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    white-space: pre-wrap;
+    word-break: keep-all;
+    text-align: center;
+    padding: 0 24px;
+    box-sizing: border-box;
+  }
+  .card-band[data-pos="top"] { top: 0; }
+  .card-band[data-pos="bottom"] { bottom: 0; }
   .card-title-display,
   .card-body-display,
   .card-divider {
@@ -947,6 +963,8 @@
         <video class="card-bg-video" id="cardBgVideo" muted loop playsinline></video>
         <div class="card-bg-image" id="cardBgImage"></div>
         <div class="card-bg-overlay" id="cardBgOverlay"></div>
+        <div class="card-band" id="cardBandTop"></div>
+        <div class="card-band" id="cardBandBottom"></div>
         <div class="card-badge" id="cardBadge">CARD</div>
         <div class="card-title-display" id="cardTitleDisplay">제목을 입력하세요</div>
         <div class="card-divider"></div>
@@ -1243,6 +1261,20 @@
               <input type="text" id="bgReplacePrompt" placeholder="새 배경 설명 (예: 벚꽃이 만개한 공원)" style="margin-bottom:6px" />
               <button class="btn btn-primary btn-sm" id="bgReplaceGoBtn" style="width:100%;justify-content:center">배경 교체 실행</button>
             </div>
+            <div style="display:flex;gap:4px;margin-top:6px">
+              <button class="btn btn-ghost btn-sm" id="bgBlendBtn" style="flex:1;justify-content:center">이미지 합성</button>
+            </div>
+            <div id="bgBlendOptions" style="display:none;margin-top:6px">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                <label class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;cursor:pointer">
+                  두 번째 이미지 선택
+                  <input type="file" id="bgBlendImageInput" accept="image/*" style="display:none">
+                </label>
+              </div>
+              <img id="bgBlendThumb" style="display:none;max-width:100%;max-height:80px;object-fit:contain;border-radius:var(--radius);margin-bottom:6px;border:1px solid var(--border)" />
+              <input type="text" id="bgBlendPrompt" placeholder="합성 스타일 (선택, 예: 이중노출, 부드럽게 블렌딩)" style="margin-bottom:6px" />
+              <button class="btn btn-primary btn-sm" id="bgBlendGoBtn" style="width:100%;justify-content:center">합성 실행</button>
+            </div>
             <div class="hint-text" id="bgAiEditStatus"></div>
           </div>
         </div>
@@ -1334,6 +1366,37 @@
             페이지 번호 표시
           </label>
         </div>
+        <div class="form-group">
+          <label style="margin-bottom:6px">텍스트 밴드</label>
+          <div style="display:flex;gap:4px;margin-bottom:8px">
+            <button class="btn btn-ghost btn-sm band-pos-btn" data-bandpos="none" style="flex:1;justify-content:center">없음</button>
+            <button class="btn btn-ghost btn-sm band-pos-btn" data-bandpos="top" style="flex:1;justify-content:center">상단</button>
+            <button class="btn btn-ghost btn-sm band-pos-btn" data-bandpos="bottom" style="flex:1;justify-content:center">하단</button>
+            <button class="btn btn-ghost btn-sm band-pos-btn" data-bandpos="both" style="flex:1;justify-content:center">양쪽</button>
+          </div>
+          <div id="bandOptionsGroup" style="display:none">
+            <div id="bandTextSingle">
+              <textarea id="bandTextInput" placeholder="밴드에 표시할 텍스트" rows="2" style="margin-bottom:6px;resize:vertical"></textarea>
+            </div>
+            <div id="bandTextDual" style="display:none">
+              <label style="font-size:11px;margin-bottom:2px;display:block;color:var(--text-secondary)">상단</label>
+              <textarea id="bandTextTopInput" placeholder="상단 밴드 텍스트" rows="2" style="margin-bottom:6px;resize:vertical"></textarea>
+              <label style="font-size:11px;margin-bottom:2px;display:block;color:var(--text-secondary)">하단</label>
+              <textarea id="bandTextBottomInput" placeholder="하단 밴드 텍스트" rows="2" style="margin-bottom:6px;resize:vertical"></textarea>
+            </div>
+            <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+              <label style="font-size:11px;white-space:nowrap;min-width:50px">배경색</label>
+              <input type="color" id="bandColorInput" value="#000000" style="width:32px;height:24px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+              <label style="font-size:11px;white-space:nowrap;min-width:50px">글자색</label>
+              <input type="color" id="bandTextColorInput" value="#FFFFFF" style="width:32px;height:24px;padding:0;border:1px solid var(--border);border-radius:4px;cursor:pointer">
+            </div>
+            <label style="font-size:11px;margin-bottom:4px;display:block">높이 <span id="bandHeightVal" style="color:var(--text-secondary)">20%</span></label>
+            <input type="range" class="range-input" id="bandHeightRange" min="10" max="40" value="20" style="margin-bottom:6px">
+            <label style="font-size:11px;margin-bottom:4px;display:block">글자 크기 <span id="bandFontSizeVal" style="color:var(--text-secondary)">13px</span></label>
+            <input type="range" class="range-input" id="bandFontSizeRange" min="8" max="28" value="13" style="margin-bottom:6px">
+            <button class="btn btn-ghost btn-sm" id="applyBandAllBtn" style="width:100%;justify-content:center;margin-top:2px">밴드를 전체 슬라이드에 적용</button>
+          </div>
+        </div>
         <button class="btn btn-ghost btn-sm" id="applyLayoutAll" style="width:100%;justify-content:center;margin-top:10px">현재 레이아웃을 전체 슬라이드에 적용</button>
       </div></div>
     </div>
@@ -1343,7 +1406,7 @@
 
 <script>
 // ─── STATE ───
-const DEFAULT_SLIDE = { title: '', body: '', bg: '#FFFFFF', tc: '#1A1916', bodyTc: '#1A1916', fontSize: 22, bodyFontSize: 13, bodyLineHeight: 1.7, align: 'center', valign: 'center', padding: 32, padTop: null, padBottom: null, padLeft: null, padRight: null, textGap: 12, divider: true, showPageNum: true, showTitle: true, showBody: true, badge: '', badgePos: 'left', showBadge: true, font: 'Noto Sans KR', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: 30, bgOverlayMode: 'dark', textStroke: '#000000', textStrokeWidth: 0, bodyStroke: '#000000', bodyStrokeWidth: 0 };
+const DEFAULT_SLIDE = { title: '', body: '', bg: '#FFFFFF', tc: '#1A1916', bodyTc: '#1A1916', fontSize: 22, bodyFontSize: 13, bodyLineHeight: 1.7, align: 'center', valign: 'center', padding: 32, padTop: null, padBottom: null, padLeft: null, padRight: null, textGap: 12, divider: true, showPageNum: true, showTitle: true, showBody: true, badge: '', badgePos: 'left', showBadge: true, font: 'Noto Sans KR', bgImage: '', bgZoom: 100, bgPosX: 50, bgPosY: 50, bgOverlay: 30, bgOverlayMode: 'dark', textStroke: '#000000', textStrokeWidth: 0, bodyStroke: '#000000', bodyStrokeWidth: 0, bandPos: 'none', bandColor: '#000000', bandTextColor: '#FFFFFF', bandText: '', bandTextBottom: '', bandHeight: 20, bandFontSize: 13 };
 
 const state = {
   projectId: null,       // 현재 프로젝트 ID
@@ -1558,6 +1621,20 @@ function selectSlide(i) {
     btn.classList.toggle('active', btn.dataset.valign === (sl.valign || 'center'));
   });
 
+  // band sync
+  const bp = sl.bandPos || 'none';
+  document.querySelectorAll('.band-pos-btn').forEach(b => b.classList.toggle('active', b.dataset.bandpos === bp));
+  updateBandTextMode(bp);
+  $('bandTextInput').value = sl.bandText || '';
+  $('bandTextTopInput').value = sl.bandText || '';
+  $('bandTextBottomInput').value = sl.bandTextBottom || '';
+  $('bandColorInput').value = sl.bandColor || '#000000';
+  $('bandTextColorInput').value = sl.bandTextColor || '#FFFFFF';
+  $('bandHeightRange').value = sl.bandHeight || 20;
+  $('bandHeightVal').textContent = (sl.bandHeight || 20) + '%';
+  $('bandFontSizeRange').value = sl.bandFontSize || 13;
+  $('bandFontSizeVal').textContent = (sl.bandFontSize || 13) + 'px';
+
   renderCard();
   renderSlideStrip();
   if (typeof allFonts !== 'undefined' && fontsLoaded) renderFontList($('fontSearch').value);
@@ -1747,6 +1824,35 @@ function renderCard() {
   cardDivider.style.margin = sl.align === 'left' ? `${halfGap}px 0` : sl.align === 'right' ? `${halfGap}px 0 ${halfGap}px auto` : `${halfGap}px auto`;
   cardPageNum.textContent = `${state.current + 1} / ${state.slides.length}`;
   cardPageNum.style.display = sl.showPageNum !== false ? 'block' : 'none';
+
+  // 텍스트 밴드
+  const bandTop = $('cardBandTop');
+  const bandBot = $('cardBandBottom');
+  const bandPos = sl.bandPos || 'none';
+  const bandH = (sl.bandHeight || 20) + '%';
+  const bandStyle = {
+    background: sl.bandColor || '#000000',
+    color: sl.bandTextColor || '#FFFFFF',
+    fontSize: (sl.bandFontSize || 13) + 'px',
+    height: bandH,
+    fontFamily: sl.font ? `'${sl.font}', 'Noto Sans KR', sans-serif` : "'Noto Sans KR', sans-serif",
+  };
+  if (bandPos === 'top' || bandPos === 'both') {
+    Object.assign(bandTop.style, bandStyle);
+    bandTop.style.display = 'flex';
+    bandTop.dataset.pos = 'top';
+    bandTop.textContent = sl.bandText || '';
+  } else {
+    bandTop.style.display = 'none';
+  }
+  if (bandPos === 'bottom' || bandPos === 'both') {
+    Object.assign(bandBot.style, bandStyle);
+    bandBot.style.display = 'flex';
+    bandBot.dataset.pos = 'bottom';
+    bandBot.textContent = (bandPos === 'both' ? (sl.bandTextBottom || '') : (sl.bandText || ''));
+  } else {
+    bandBot.style.display = 'none';
+  }
 }
 
 // ─── EDIT HANDLERS ───
@@ -1810,6 +1916,65 @@ document.querySelectorAll('.badge-pos-btn').forEach(btn => {
     renderCard();
   };
 });
+// ─── 텍스트 밴드 ───
+function updateBandTextMode(pos) {
+  $('bandOptionsGroup').style.display = pos === 'none' ? 'none' : 'block';
+  $('bandTextSingle').style.display = pos === 'both' ? 'none' : 'block';
+  $('bandTextDual').style.display = pos === 'both' ? 'block' : 'none';
+}
+document.querySelectorAll('.band-pos-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.band-pos-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const pos = btn.dataset.bandpos;
+    setSlide(state.current, 'bandPos', pos);
+    updateBandTextMode(pos);
+    renderCard();
+  };
+});
+$('bandTextInput').oninput = e => {
+  setSlide(state.current, 'bandText', e.target.value);
+  renderCard();
+};
+$('bandTextTopInput').oninput = e => {
+  setSlide(state.current, 'bandText', e.target.value);
+  renderCard();
+};
+$('bandTextBottomInput').oninput = e => {
+  setSlide(state.current, 'bandTextBottom', e.target.value);
+  renderCard();
+};
+$('bandColorInput').oninput = e => {
+  setSlide(state.current, 'bandColor', e.target.value);
+  renderCard();
+};
+$('bandTextColorInput').oninput = e => {
+  setSlide(state.current, 'bandTextColor', e.target.value);
+  renderCard();
+};
+$('bandHeightRange').oninput = e => {
+  const v = parseInt(e.target.value);
+  setSlide(state.current, 'bandHeight', v);
+  $('bandHeightVal').textContent = v + '%';
+  renderCard();
+};
+$('bandFontSizeRange').oninput = e => {
+  const v = parseInt(e.target.value);
+  setSlide(state.current, 'bandFontSize', v);
+  $('bandFontSizeVal').textContent = v + 'px';
+  renderCard();
+};
+$('applyBandAllBtn').onclick = () => {
+  const src = getSlide(state.current);
+  const keys = ['bandPos', 'bandColor', 'bandTextColor', 'bandText', 'bandTextBottom', 'bandHeight', 'bandFontSize'];
+  state.slides.forEach((sl, i) => {
+    if (i === state.current) return;
+    keys.forEach(k => { sl[k] = src[k]; });
+  });
+  saveState();
+  showToast(`텍스트 밴드를 ${state.slides.length}장에 적용했습니다`);
+};
+
 $('showTitle').onchange = e => {
   setSlide(state.current, 'showTitle', e.target.checked);
   $('titleInput').style.opacity = e.target.checked ? '1' : '0.4';
@@ -2529,6 +2694,96 @@ $('bgReplaceGoBtn').onclick = async () => {
   } finally {
     btn.disabled = false;
     btn.textContent = '배경 교체 실행';
+  }
+};
+
+// ─── 이미지 합성 (두 이미지 블렌딩) ───
+let blendImageData = null;
+
+$('bgBlendBtn').onclick = () => {
+  const opts = $('bgBlendOptions');
+  opts.style.display = opts.style.display === 'none' ? 'block' : 'none';
+};
+
+$('bgBlendImageInput').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const dataUrl = await resizeImage(file);
+  blendImageData = dataUrl;
+  $('bgBlendThumb').src = dataUrl;
+  $('bgBlendThumb').style.display = 'block';
+};
+
+$('bgBlendGoBtn').onclick = async () => {
+  const sl = getSlide(state.current);
+  if (!sl.bgImage) return showToast('배경 이미지가 없습니다');
+  if (!blendImageData) return showToast('두 번째 이미지를 선택하세요');
+  if (!state.geminiKey) return showToast('Gemini API 키를 설정하세요');
+
+  const btn = $('bgBlendGoBtn');
+  btn.disabled = true;
+  btn.textContent = '처리 중...';
+  $('bgAiEditStatus').textContent = '';
+
+  try {
+    const styleHint = $('bgBlendPrompt').value.trim();
+    const styleDesc = styleHint
+      ? `Blend style: ${styleHint}.`
+      : 'Use a natural, seamless blend.';
+
+    const prompt = `Naturally blend and composite these two images into a single cohesive image. ${styleDesc} The result should look like one unified photograph or artwork — not a simple side-by-side collage. Seamlessly merge elements, lighting, and colors from both images. Output only the final blended image, no text.`;
+
+    // 두 이미지를 parts에 넣어서 Gemini에 전송
+    const img1Match = sl.bgImage.match(/^data:(image\/\w+);base64,(.+)$/);
+    const img2Match = blendImageData.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (!img1Match || !img2Match) throw new Error('이미지 형식 오류');
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${state.geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inlineData: { mimeType: img1Match[1], data: img1Match[2] } },
+              { inlineData: { mimeType: img2Match[1], data: img2Match[2] } },
+              { text: prompt }
+            ]
+          }],
+          generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+        })
+      }
+    );
+
+    if (res.status === 429) {
+      const err = await res.json().catch(() => ({}));
+      if ((err.error?.message || '').includes('limit: 0')) {
+        throw new Error('Gemini 무료 쿼터가 소진되었습니다.');
+      }
+      throw new Error('Gemini API 요청 한도 초과. 잠시 후 다시 시도하세요.');
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Gemini 오류 (${res.status})`);
+    }
+
+    const data = await res.json();
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const imgPart = parts.find(p => p.inlineData);
+    if (!imgPart) throw new Error('이미지 생성 결과 없음');
+
+    const result = `data:${imgPart.inlineData.mimeType};base64,${imgPart.inlineData.data}`;
+    sl.bgImage = result;
+    $('bgImageThumb').src = result;
+    renderCard(); renderSlideStrip(); saveState();
+    showToast('이미지 합성 완료!');
+  } catch (e) {
+    showToast('이미지 합성 실패: ' + e.message);
+    $('bgAiEditStatus').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '합성 실행';
   }
 };
 
